@@ -1,0 +1,109 @@
+import "platform:/plugin/org.genivi.commonapi.someip/deployment/CommonAPI-4-SOMEIP_deployment_spec.fdepl"
+import "hello.fidl"
+import "platform:/plugin/com.bst.os.idl/deployment/asf_gen.fdepl"
+import "platform:/plugin/com.bst.os.idl/deployment/interface_test.fdepl"
+
+define org.genivi.commonapi.someip.deployment for interface com.bst.os.services.hello.HelloService {
+    SomeIpServiceID = 10800//service ID
+
+
+    method openCamera {//Method ID
+        SomeIpMethodID = 10801
+        SomeIpReliable = false 
+    }
+
+    method startRecord {//Method ID
+        SomeIpMethodID = 10802
+        SomeIpReliable = false 
+    }
+
+     method stopRecord {//Method ID
+        SomeIpMethodID = 10803
+        SomeIpReliable = false 
+    }
+
+    method readRecord {//Method ID
+        SomeIpMethodID = 10804
+        SomeIpReliable = false 
+    }
+
+    attribute name {
+      SomeIpGetterID = 11219
+      SomeIpSetterID = 11220
+      SomeIpNotifierID = 51221        
+      SomeIpEventGroups = { 51222 }
+
+    }
+
+    attribute position {
+      SomeIpGetterID = 11221
+      SomeIpSetterID = 11222
+      SomeIpNotifierID = 51223
+      SomeIpEventGroups = { 51224 }
+
+    }
+    attribute status {
+      SomeIpGetterID = 11223
+      SomeIpSetterID = 11224
+      SomeIpNotifierID = 51225
+      SomeIpEventGroups = { 51226 }
+
+    } 
+    broadcast firstBc {
+      SomeIpEventID = 38076
+      SomeIpEventGroups = { 38076 }
+ 
+   }
+    broadcast secondBc {
+      SomeIpEventID = 38077
+      SomeIpEventGroups = { 38077 }
+ 
+   }
+}
+
+define com.bst.os.idl.asf.deployment for provider as MyService {
+
+    instance com.bst.os.services.hello.HelloService {
+        
+    }
+    
+}
+
+
+define org.genivi.commonapi.someip.deployment for provider as MyServiceA {
+
+    instance com.bst.os.services.hello.HelloService {
+
+        InstanceId = "com.bst.os.services.hello.HelloService"
+
+        SomeIpInstanceID = 10810
+
+        SomeIpUnicastAddress = "192.168.0.2"
+        SomeIpReliableUnicastPort = 30500
+        SomeIpUnreliableUnicastPort = 30501
+    }
+
+}
+
+define com.bst.os.idl.test.deployment for interface com.bst.os.services.hello.HelloService  {
+    InstanceId = "com.bst.os.services.hello.HelloService"
+    method openCamera {
+        //TestCases = "[['16', '2'],['16', '2'],['1', '1'],['3', '1']]"
+        //TestCases = "[['16', '-1', 'test1'],['16', '-1', 'test1'],['1','1', ''],['3', '1', '']]"
+        TestCases = "[['16', 'false', '2', 'true'],['16', 'false',  '2', 'true'],['1','true','1','false'],['3', 'true','1', 'false']]"
+    }
+
+    broadcast firstBc {
+        TestCases = "['First broadcast!', 'hi! First selective broadcast!']"
+    }
+    broadcast secondBc {
+        TestCases = "['Second broadcast!', 'Bye! Second broadcast!']"
+    }
+    attribute name {
+       TestCases = "['name','Bob','World']" 
+    }
+    attribute status {
+       TestCases = "['status','true']"
+    } 
+  
+}

@@ -1,0 +1,149 @@
+/*
+ * Copyright (c) 2024 Black Sesame Technologies
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+specification com.bst.os.idl.asf.deployment {
+    /*
+     * The parameters in "for providers{}", are all about generating auto-startup configuration files.
+     */
+    for providers {
+
+        /*
+         * define which type of configuration file to be generated.
+         *     If config_type == none or just not be setted, nothing will be generated.
+         *     If config_type == systemd, xxx-service.service and xxx_config.json will be generated.
+         *     If config_type == slm, xxx_config.xml and xxx_config.json will be generated.
+         */
+        config_type: {systemd, slm, none}   (default: none);
+
+        ProcessName : String;
+        Description : String;
+
+        /*
+         * startup sequences of processe [Linux systemd]
+         *    After: Processes should be started up after the current process. 
+         *    Before: Processes should be started up before the current process. 
+         */
+        After : String[];
+        Before : String[];
+
+        /*
+         * dependencies of processe [Linux systemd && QNX SLM]
+         *    Wants: Weak dependence. If the dependent processes startup failed or stop running, 
+         *           the current process will not be involved. 
+         *    Require: Strong dependence.If the dependent processes startup failed or stop running,
+         *             the current process will exit.
+         */
+        Wants : String[];
+        Require : String[];
+        
+        /*
+         * These three parameters just for Linux systemd .service.
+         *     ServiceType = <this daemon's startup type>
+         *     ServiceBusName = <only should be setted when "ServiceType = dbus">
+         *     ServiceExecStartPre = <Additional commands that are executed before or after the command in ExecCommand.
+         *                            All processes forked off by processes invoked via ServiceExecStartPre= will be
+         *                            killed before the next service process is run.>
+         * RRCOMMAND: ServiceExecStartPre may not be used to start long-running processes. 
+         *----------------------------------------------------------------------------------------------------------
+         * ServiceExecStopPost = <Additional commands that are executed after the service is stopped.> 
+         *                       <Note that the execution of ExecStopPost= is taken into account for the purpose of
+         *                        Before=/After= ordering constraints.>
+         */
+        ServiceType : {simple, exec, forking, oneshot, dbus, notify, idle}    (default: simple);
+        ServiceBusName : String (optional);
+        ServiceExecStartPre : String[];  //↑一一对应 仅service    (String[])
+        ServiceExecStopPost : String[];  //↑一一对应 仅service    (String[])
+
+        /* 
+         * Since there are five special executable prefixes designed for ExecCommand, 
+         * which just for Linux systemd .service. The ExecCommand parameter should be distinguished!
+         *    For each command the first argument must be either an absolute path to an executable or a simple file name without any slashes. 
+         *    SLMExecCommand = <an absolute path to an executable or a simple file name without any slashes.>
+         *    ServiceExecCommand = <[Optional special executable prefixes] +  an absolute path to an executable or a simple file name without any slashes.>
+         *                         <ServiceType=oneshot are the only service units that may have more than one ServiceExecCommand= specified.>
+         * 
+         *    There are five optional special executable prefixes :"@", "-", "+", "!", "!!" .
+         *    About using :you can visit the "Table 2. Special executable prefixes" of the website https://www.freedesktop.org/software/systemd/man/systemd.service.html
+         *----------------------------------------------------------------------------------------------------------
+         * RECOMMAND: Do not to use prefix "-", if you do not want the failure result be considered equivalent to success. 
+         */
+        SLMExecCommand : String (optional);               
+        ServiceExecCommand : String[] (optional);  
+
+        ExecArgs : String[] (optional); 
+        EnvironmentVars : String[] (optional); 
+
+        /*[Install]
+         * WantedBy means start this service when this other service/unit is starting.
+         */
+        WantedBy : String (default: "multi-user.target"); //仅service
+
+        /*
+         * These two parameters just for QNX SLM system, 
+         * for reusing of the SLM reusable coponents or modules defined in the other XML files.
+         * ReuseSLMSystemInclusionName = <define the reusable inclusion's names of the other XML files>
+         * ReuseSLMSystemFileName = <the other XML files' names>
+         */
+        ReuseSLMSystemInclusionName : String[] (optional);
+        ReuseSLMSystemFileName : String[] (optional); 
+
+        /*
+         * The following seven parameters about generating xxx_config.json file.
+         * And one process as a module is corresponding to a .service or .xml file's component.
+         *    module_auto_startup = <if the module support auto-startup or not>
+         *    module_auto_restart = <if the module support auto-restart or not>
+         *    module_max_start_action = <module's action when max start time is reached>
+         *    module_max_start_dtc = <module's max start time dtc>
+         *    module_version = <version of the module which is labeled as container>
+         *    module_special_para = <special parameter of the module which is labeled as container>
+         *    module_label = <the module is a systemd service or a container>
+         */
+        module_auto_startup : Boolean  (optional);
+        module_auto_restart : Boolean  (optional);
+        module_max_start_action : {ignore, restart_system} (optional);
+        module_max_start_dtc : String  (optional);
+        module_version : String  (optional);
+        module_special_para : String  (optional);
+        module_label : {systemd, container}  (optional);
+    }
+    
+    for instances {
+        /*
+         * define the enumeration interface type for instance.
+         */
+        InterfaceType : {CommonAPI, BstLib, BstIpc, BstHal, BstSvc} (default: CommonAPI);
+
+        /*
+         * InstanceType:
+         * 1. Server Instance: 
+         * There exists unique server instance in provider which will provide service for users.
+         * This means only stub code would be generated for the server instance.
+         *
+         * 2. Client Instances: 
+         * Only proxy code would be generated for instances which labled "client".
+         * And the only server instance will use the proxy code to seek service from corresponding server.  
+         */
+        InstanceType : {server, client}                                       (optional);
+
+        /*
+         * define the user defined logic name and header path.
+         * They must be both set at same time.
+         * if a instance doesn't has this deployment, default logic name and headerpath will be used.
+         */
+        UserLogicClassName : String;
+        UserLogicHeaderPath: String;
+    } 
+
+}

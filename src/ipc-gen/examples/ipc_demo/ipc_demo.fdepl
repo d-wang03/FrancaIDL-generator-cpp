@@ -1,0 +1,20 @@
+import "ipc_demo.fidl"
+import "platform:/plugin/com.bst.os.idl/deployment/ipc_gen.fdepl"
+define com.bst.os.idl.ipc.deployment for interface com.bst.os.idl.ipc.test.InterfaceDemo
+{
+    client=5
+    server=6
+    method IDA 
+    {
+        ID = 0
+    }
+    method IDB 
+    {
+        ID = 1
+    }
+
+    broadcast ID 
+    {
+        ID = 0
+    }
+}

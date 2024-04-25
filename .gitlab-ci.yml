@@ -1,0 +1,8 @@
+stages:
+  - build
+build:
+  stage: build
+  script: 
+    - /home/cppcheck-2.1/cppcheck --enable=all --xml-version=2 ./ 2>cppcheck.xml && /usr/bin/sonar-scanner -Dsonar.projectKey=francaidl  -Dsonar.sources=. -Dsonar.language=c++ -Dsonar.host.url=http://10.28.2.67:9000 -Dsonar.login=81e6276252675eb10fe3ef6d957118de02bf57ed
+  tags:
+    - share

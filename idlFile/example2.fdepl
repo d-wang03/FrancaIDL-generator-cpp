@@ -1,0 +1,13 @@
+import "../idlFile/example1.fdepl"
+import "../idlFile/example.fidl"
+define examples.SimpleSpec for interface examples.MediaPlayer
+{
+    struct Person
+    {
+        firstname { Encoding = unicode }
+        surname { Encoding = unicode }
+    }
+    struct TrackInfo {
+        album { Encoding = unicode }
+    }
+}

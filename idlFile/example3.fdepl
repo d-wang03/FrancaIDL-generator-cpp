@@ -1,0 +1,10 @@
+import "../idlFile/example1.fdepl"
+import "../idlFile/example.fidl"
+define examples.SimpleSpec for interface examples.MediaPlayer 
+{
+    attribute currentTrack {
+        #struct {
+            album { Encoding = utf16 } 
+        } 
+    }
+}

@@ -1,0 +1,106 @@
+/*
+ * Copyright (c) 2024 Black Sesame Technologies
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+specification com.bst.os.idl.test.deployment{
+    for interfaces {
+        /*
+         * define the enumeration interface type for test code generation.
+         */
+        InterfaceType : {CommonAPI, BstLib, BstIpc, BstHal, BstSvc} (default: CommonAPI);
+        /*
+         * define instance id of the service you want to test.
+         */
+        InstanceId : String;
+    }
+    for methods {
+        /*
+         * define the test cases for methods.
+         * The test cases are in JSON format. The whole string is a JSON array.
+         * Each test case is a JSON array, each item is the argument of the method.
+         * e.g. for method sayHello, which defined as 
+         * method sayHello {
+         *     in {
+         *        String name
+         *     }
+         *     out {
+         *        String message
+         *     }
+         *     error {
+         *         INVALID_NAME
+         *     }
+         * }
+         * The testcase defined in deploy file should be:
+         * define com.bst.os.idl.test.deployment for interface XXX{
+         *    method sayHello {
+         *        TestCases = "[['name','message','error'],['Bob','Hello Bob!',''],['World','Hello World!','']]"
+         *    }
+         * }
+         * The first item in TestCases is an indicator, which exactly contains the arguments' names of method.
+         * The following items are test cases, which contains the arguments' values in the case.
+         * 
+         * Note: either ' or \" can be used in test case difinitions.
+         */
+        TestCases : String (optional);
+    }
+   
+    for attributes{
+        /*
+         * define the test cases for attributes.
+         * The test cases are in JSON format. The whole string is a JSON array.
+         * Each test case is a JSON array, each item is the argument of the attribute.
+         * e.g. for attribute name, which defined as 
+         * attribute String name
+         * The testcase defined in deploy file should be:
+         * define com.bst.os.idl.test.deployment for interface XXX{
+         *    attribute name {
+         *        TestCases = "['name','Bob','World']"
+         *    }
+         * }
+         * The first item in TestCases is an indicator, which exactly contains the name of attribute.
+         * The following items are test cases, which contains the value in the case.
+         * 
+         * Note: either ' or \" can be used in test case difinitions.
+         */
+        TestCases : String (optional);
+
+    }
+
+    for broadcasts {
+        /*
+         * define the test cases for broadcasts which property named BroadcastType is signal.
+         * The test cases are in JSON format. The whole string is a JSON array.
+         * Each test case is a JSON array, each item is the out-argument of the broadcast.
+         * e.g. for broadcast sayBye, which defined as 
+         * broadcast sayBye {
+         *     out {
+         *        String message
+                  Boolean isBye
+         *     }
+         * }
+         * The testcase defined in deploy file should be:
+         * define com.bst.os.idl.test.deployment for interface XXX{
+         *    broadcast sayBye {
+         *        TestCases = "[['message','true'],['see you tomorrow','true']]"
+         *    }
+         * }
+         * The first item in TestCases is an indicator, which exactly contains the out-arguments' names of method.
+         * The following items are test cases, which contains the out-arguments' values in the case.
+         * 
+         * Note: either ' or \" can be used in test case difinitions.
+         */
+        TestCases : String (optional);
+
+    }
+}

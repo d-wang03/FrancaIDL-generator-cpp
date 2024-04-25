@@ -1,0 +1,144 @@
+package fdmodel2
+
+typeCollection tc1 {
+    version {major 1 minor 0}
+    
+    struct a1{
+        String str
+        Boolean bool
+    }
+    struct tcStruct {
+        Integer id
+        String name
+    }
+    union u1 {
+        Integer num
+        Boolean ifcheck
+    }
+    enumeration e1 {
+        FIRST
+        SECOND
+        THIRD
+    }
+    map tcMap { String to u1}
+    array tcArray of a1
+    typedef Order is e1
+    
+}
+
+interface interface1{
+    version {major 1 minor 0}
+
+    attribute Float throttle
+    attribute Float speed readonly
+    struct a2{
+        String str
+        tc1.a1 testtc
+    } 
+    array Names of String
+
+}
+
+interface interface2 extends interface1{
+    version {major 1 minor 0}
+    
+    // the types
+    map Map1 { String to a2}
+    array MyArray of Integer
+    array Array1 of Map1
+    enumeration OtherEnumeration { F1 F2 }
+
+    enumeration MyEnumeration { E1 E2 E3}
+
+    struct MyStruct {
+        Integer field1
+        String field2
+        String field3
+        MyStruct1 field4
+        Names field5
+        a2 field6
+    } 
+    struct MyStruct0 extends MyStruct{
+        String str
+
+    } 
+    struct MyStruct1 {
+        Integer field11
+        String field2
+        String field3
+        MyArray field4
+    } 
+    union MyUnion {
+        Integer field1
+        String field2
+    }
+    union MyUnion1 {
+        Integer field1
+    }
+    typedef MyTypedef is Integer
+    typedef MyTypedef1 is MyStruct
+    typedef NestedTypedef is MyTypedef
+    typedef MyStr is String
+    // various users of the above types
+    
+    attribute String attrB
+    attribute MyArray attrA
+    attribute MyEnumeration attrE
+    attribute MyStruct attrS
+    attribute MyUnion attrU
+    attribute MyTypedef attrT/*
+    method Method1:b{
+        in {
+            String argB
+        }
+    }
+    method Method1:a{
+        in {
+            String argB
+            MyArray argA
+            MyEnumeration argE
+            MyStruct argS
+            MyUnion argU
+        }
+    }*/
+    method Method2 {
+        in {
+            Integer argB
+            MyArray argA
+            MyEnumeration argE
+            MyStruct argS
+            MyUnion argU
+        }
+        out {
+            String argStr
+            Integer argg
+        }
+    }
+    broadcast broadcast1 {
+        out {
+            Names argBB
+            Array1 argBA
+        }
+    }
+    array OtherArrayA of MyArray
+    array OtherArrayE of MyEnumeration
+    array OtherArrayS of MyStruct
+    array OtherArrayU of MyUnion
+    struct IntegerTest {
+        Integer(minInt, maxInt) field1
+        Integer(10, maxInt) field2
+        Integer(minInt, 100) field3
+        Integer(20, 400) field4
+    }
+    struct OtherStruct {
+        String fieldB
+        Boolean fieldBool
+        MyArray fieldA
+        MyEnumeration fieldE
+        MyStruct fieldS
+        MyUnion fieldU
+        MyTypedef1 fieldI
+    } 
+    
+
+}

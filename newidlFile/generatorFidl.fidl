@@ -1,0 +1,77 @@
+package fdmodel2
+
+typeCollection tc1 {
+    struct a1{
+		String str
+		Boolean bool
+	}
+	struct tcStruct {
+		Integer id
+		String name
+	}
+	union u1 {
+		Integer num
+		Boolean ifcheck
+	}
+	enumeration e1 {
+		FIRST
+		SECOND
+		THIRD
+	}
+	map tcMap { String to u1}
+	array tcArray of a1
+	typedef Order is e1
+	
+}
+
+interface interface1{
+	version {major 1 minor 0}
+    
+    attribute Float throttle
+    attribute Float speed readonly
+    struct a2{
+        String str
+		tc1.a1 testtc
+    } 
+	array Names of String
+
+}
+
+interface interface2 extends interface1{
+	version {major 1 minor 0}
+	
+	union MyUnion {
+		Integer field1
+		String field2
+	}
+
+	typedef MyStr is String
+	// various users of the above types
+	
+	attribute String attrB
+	attribute MyUnion attrU
+
+	method divide {
+		in {
+			Integer argB
+			MyUnion argU
+		}
+        out {
+            String argStr
+			Integer argg
+        }
+		error {
+            DIVISION BY ZERO
+            OVERFLOW
+            UNDERFLOW
+        }
+	}
+
+	broadcast UNDERFLOW {
+		out {
+            String errorStr
+		}
+	}
+	
+
+}

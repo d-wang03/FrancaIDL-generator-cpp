@@ -1,0 +1,7 @@
+mport "example1.fdepl"
+import "example.fidl"  
+define examples.SimpleSpec for interface examples.MediaPlayer {
+attribute currentTrack { #struct {
+composer { #struct {
+firstname { Encoding = unicode }
+surname { Encoding = unicode } } } } } }

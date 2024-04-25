@@ -1,0 +1,16 @@
+package extension
+import "../newidlFile/testFDModel1.fidl"
+
+
+typeCollection EmptyTc {
+
+}
+
+typeCollection tc1 {
+    String[] strArray
+}
+
+interface empty {
+
+}
+

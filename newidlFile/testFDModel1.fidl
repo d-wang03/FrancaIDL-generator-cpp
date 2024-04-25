@@ -1,0 +1,52 @@
+package fdmodel1
+
+typeCollection tc1{
+    const UInt64 num = 16*18
+    struct a1{
+        String num1
+    }
+
+    typedef TypeTwo is Boolean
+
+}
+
+interface interface1{
+    attribute Float throttle
+    attribute Float speed readonly
+    const UInt64 num2 = tc1.num
+    const tc1.TypeTwo def = false
+    
+    struct a2{
+        String str
+        tc1.a1 aa
+    } 
+    struct infor1{
+        String str1
+        Boolean fl
+        a2 struct3
+    }
+    
+    method divide {
+        in {
+            UInt32 dividend
+            UInt32 divisor
+            a2 struct1
+        }
+        out {
+            UInt32 quotient
+            UInt32 remainder
+            String str
+        } 
+    error {
+        DIVISION BY ZERO
+        OVERFLOW
+        UNDERFLOW
+    }
+    }
+
+    broadcast tsunamiDetected {
+        out { 
+            String location 
+        } 
+    }
+}

@@ -1,0 +1,12 @@
+interface Test {
+    version {}
+    method te{
+        in {
+
+        }
+        out {
+
+        }
+        error ErrorTest
+    }
+}

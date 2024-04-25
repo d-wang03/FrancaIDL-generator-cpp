@@ -1,0 +1,48 @@
+    package com.Bst.idl.test
+    import com.bst.common from "../idlFile/common.fidl"
+    import com.bst.common from "../idlFile/common.fidl"
+    import com.bst.common from "../idlFile/common.fidl"
+
+    interface Interface1 {
+    attribute UInt64 integer
+    attribute Double double
+
+    const UInt32 cst1 = 25
+    const Boolean cst2 = false
+    
+    method test1{
+        in{
+            Boolean check1
+        }
+    }
+    method test2{
+        in{
+            Boolean check2
+        }
+        out{
+            Boolean out1
+        }
+    }
+    broadcast test3{
+        out{
+            Boolean check3
+        }
+    }
+    broadcast test4{
+        out{
+            Boolean check4
+        }
+    }
+    broadcast test5{
+        out{
+            Boolean check5
+            Boolean check6
+        }
+    }
+    
+    enumeration Enum1 {
+        STACKFLOW
+        OVERFLOW
+        LALALA
+    }
+}

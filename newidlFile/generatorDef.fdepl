@@ -1,0 +1,13 @@
+import "../newidlFile/FDModel2.fidl"
+import "../newidlFile/testFDModel1.fidl"
+import "../newidlFile/defineFDModel1.fdepl"
+import "../plugin/com.bst.os.idl/deployment/asf_gen.fdepl"
+
+define com.bst.os.idl.asf.deployment for provider as Server {
+
+    instance fdmodel2.interface2 {
+    }
+    instance fdmodel2.interface1 {
+    }
+    
+}

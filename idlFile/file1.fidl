@@ -1,0 +1,4 @@
+package com.bst.idl.parser.test
+
+import com.bst.common from "../idlFile/common.fidl"
+interface Calculator {}

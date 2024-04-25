@@ -1,0 +1,8 @@
+import "example1.fdepl"
+import "example.fidl" 
+define examples.SimpleSpec for interface examples.MediaPlayer {
+method play {
+in {
+track {
+#struct {
+album { Encoding = utf16 } } } } } }

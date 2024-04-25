@@ -1,0 +1,5 @@
+package com.bst.common
+typeCollection MyCollection {
+	const UInt32 z =5*2
+}
+

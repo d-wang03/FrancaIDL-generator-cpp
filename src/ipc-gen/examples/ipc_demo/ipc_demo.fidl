@@ -1,0 +1,59 @@
+package com.bst.os.idl.ipc.test
+interface InterfaceDemo {
+    version {major 1 minor 0}
+    
+    struct Person {
+        String firstname
+        String surname
+    }
+    
+    struct TrackInfo {
+        String title
+        String album
+        Person composer
+        Person interpret
+    }
+    
+    enumeration father
+    {
+        ONE
+        TWO
+        THREE
+    }
+
+    attribute Person XiaoMing
+    
+    method IDA {
+        in
+        { 
+            UInt8 argIDA
+            Float argIDB
+        }
+        out
+        {
+            Double argIDC
+            Boolean argIDD
+        }
+        error extends father
+        {
+            FOUR
+            FIVE
+        }
+    } 
+    
+    method IDB {
+        in
+        { 
+            UInt8 argIDA
+            Float argIDB
+        }
+    }
+    
+    broadcast ID {
+        out
+        {
+            Double argIDA
+            Boolean argIDB
+        }
+    }
+}
