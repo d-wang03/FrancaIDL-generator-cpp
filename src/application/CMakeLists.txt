@@ -22,9 +22,17 @@ list(SORT DOC_SRCS)
 
 add_executable(${PROJECT_NAME} ${DOC_SRCS})
 add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} msgbox_gen GeneralserviceGenerator IPCGenerator FLibGenerator SomeipGenerator CapiGenerator FGenerator FDIDLParser IDLParser FValidator FDModel FModel fmt stdc++fs)
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+set(LINKED_LIBS msgbox_gen GeneralServiceGenerator IPCGenerator FLibGenerator SomeipGenerator CapiGenerator FGenerator FDIDLParser IDLParser FValidator FDModel FModel fmt)
+else()
+set(LINKED_LIBS msgbox_gen GeneralServiceGenerator IPCGenerator FLibGenerator SomeipGenerator CapiGenerator FGenerator FDIDLParser IDLParser FValidator FDModel FModel fmt stdc++fs)
+endif()
+target_link_libraries(${PROJECT_NAME}  ${LINKED_LIBS})
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin/idl-tools/bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
+)
+install(FILES ../../README.md DESTINATION bin/idl-tools/bin
 )

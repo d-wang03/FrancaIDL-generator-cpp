@@ -77,7 +77,6 @@ void FBinaryOperation::EvaluableValidate(std::shared_ptr<FTypeRef> &type, bool i
         typeID = FBasicTypeId::INT64;
     m_left->EvaluableValidate(type, false, l_value, false);
     m_right->EvaluableValidate(type, false, r_value, false);
-    // string 转类型 f/d / u /s
 
     switch (m_op->getValue())
     {
@@ -187,11 +186,11 @@ void FBinaryOperation::getStringValue(const uint32_t typeID, const std::string &
             value = std::to_string(ld_lvalue * ld_rvalue);
         break;
     case FOperator::DIVISION:
-        if (!type && abs(s_rvalue) >= 1e-8)
+        if (!type && std::abs(s_rvalue) >= 1e-8)
             value = std::to_string(s_lvalue / s_rvalue);
-        else if (type == 1 && abs(u_rvalue) >= 1e-8)
+        else if (type == 1 && std::abs((double)u_rvalue) >= 1e-8)
             value = std::to_string(u_lvalue / u_rvalue);
-        else if (type == 2 && abs(ld_rvalue) >= 1e-8)
+        else if (type == 2 && std::abs(ld_rvalue) >= 1e-8)
             value = std::to_string(ld_lvalue / ld_rvalue);
         else
             throw initializer_error("BinaryOperation :divition by zero.");

@@ -98,7 +98,12 @@ public:
     std::string generateFConstDeclarations(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection,
                                            const std::shared_ptr<CommonapiPropertyAccessor> &deploymentAccessor);
 
+    std::string generateFConstDefinitions(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection,
+                                          const std::shared_ptr<CommonapiPropertyAccessor> &deploymentAccessor);
+
     bool hasImplementation(const std::shared_ptr<BstIdl::FType> &fType);
+
+    bool hasImplementation(const std::shared_ptr<BstIdl::FConstantDef> &fConst);
 
     void generateRequiredTypeIncludes(const std::shared_ptr<BstIdl::FInterface> &fInterface,
                                       std::list<std::string> &generatedHeaders, std::list<std::string> &libraryHeaders,

@@ -17,7 +17,7 @@
 # include <cerrno>
 # include <climits>
 # include <cstdlib>
-# include <cstring>
+# include <cstring> // strerror
 # include <string>
 # include "FDParser.hh"
 # include "FDParserPrivate.h"
@@ -36,7 +36,7 @@
 
 %}
 
-%option noyywrap nounput noinput batch
+%option noyywrap nounput noinput batch nounistd never-interactive
 
 %{
     // A number symbol corresponding to the value in S.
@@ -163,10 +163,10 @@ blank       [ \t\r]
 "use"                   loc.step(); return yy::parser::make_USE (loc);
 
  /*FDTypeOverwrites:*/
-"#struct"                loc.step(); return yy::parser::make_STRUCTOVERWRITES (loc);
-"#union"                 loc.step(); return yy::parser::make_UNIONOVERWRITES (loc);
-"#enumeration"           loc.step(); return yy::parser::make_ENUMOVERWRITES (loc);
-"#"                      loc.step(); return yy::parser::make_HASH_SIGN (loc);
+"#struct"               loc.step(); return yy::parser::make_STRUCTOVERWRITES (loc);
+"#union"                loc.step(); return yy::parser::make_UNIONOVERWRITES (loc);
+"#enumeration"          loc.step(); return yy::parser::make_ENUMOVERWRITES (loc);
+"#"                     loc.step(); return yy::parser::make_HASH_SIGN (loc);
 
 "struct"                loc.step(); return yy::parser::make_STRUCT (loc);
 "union"                 loc.step(); return yy::parser::make_UNION (loc);
@@ -182,7 +182,7 @@ blank       [ \t\r]
 "instance"              loc.step(); return yy::parser::make_INSTANCE(loc);
 
 "in"                    loc.step(); return yy::parser::make_IN(loc);
-"out"                    loc.step(); return yy::parser::make_OUT(loc);
+"out"                   loc.step(); return yy::parser::make_OUT(loc);
 
  /*FDTypes*/
 "typeCollection"        loc.step(); return yy::parser::make_TYPECOLLECTION (loc);

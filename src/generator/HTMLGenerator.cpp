@@ -330,7 +330,10 @@ std::string HTMLGenerator::makeArguments(const std::list<std::shared_ptr<FArgume
         ret += t_argument;
         ret = ret.replace(ret.find(">NAME<"), 6, ">" + name + "<");
         ret = ret.replace(ret.find(">TAG<"), 5, ">" + tag + "<");
-        ret = ret.replace(ret.find(">TYPE<"), 6, ">" + makeLabelLink(it->getType()) + "<");
+        if (!it->isArray())
+            ret = ret.replace(ret.find(">TYPE<"), 6, ">" + makeLabelLink(it->getType()) + "<");
+        else
+            ret = ret.replace(ret.find(">TYPE<"), 6, ">" + makeLabelLink(it->getType()) + "[]<");
         ret = ret.replace(ret.find(">COMMENT<"), 9, ">" + makeComment(it, false) + "<");
     }
     return ret;

@@ -183,8 +183,9 @@ std::string FTypeCollectionGenerator::generateSource(
     header += "\n" + genExtention.generateVersionNamespaceBegin(fTypeCollection);
     auto &mgr = BstIdl::FModelManager::getInstance();
     auto model = std::dynamic_pointer_cast<BstIdl::FModel>(fTypeCollection->getContainer());
-    header += "\n" + genExtention.generateNamespaceBeginDeclaration(model);
 
+    header += "\n" + genExtention.generateNamespaceBeginDeclaration(model);
+    header += FTypeGenerator::getInstance().generateFConstDefinitions(fTypeCollection, deploymentAccessor) + "\n";
     header += "\n" + genExtention.generateNamespaceEndDeclaration(model);
     header += "\n" + genExtention.generateVersionNamespaceEnd(fTypeCollection);
     return header;
@@ -193,16 +194,25 @@ std::string FTypeCollectionGenerator::generateSource(
 bool FTypeCollectionGenerator::hasSourceFile(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection)
 {
     bool hasTypeWithImplementation = false;
+    bool hasConstantWithImplementation = false;
     auto ins = FTypeGenerator::getInstance();
     for (auto type : fTypeCollection->getTypes())
     {
         if (ins.hasImplementation(type))
         {
             hasTypeWithImplementation = true;
-            break;
+            return true;
         }
     }
-    return hasTypeWithImplementation;
+    for (auto constdef : fTypeCollection->getConstants())
+    {
+        if (ins.hasImplementation(constdef))
+        {
+            hasConstantWithImplementation = true;
+            return true;
+        }
+    }
+    return false;
 }
 
 std::list<std::string> FTypeCollectionGenerator::getAllDerivedFStructTypeHeaderPaths(

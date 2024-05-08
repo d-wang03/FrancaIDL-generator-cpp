@@ -73,9 +73,11 @@ static struct option long_options[] = {
 void version(void)
 {
     std::cout << "BST IDL Code Generator, compatible to :" << std::endl;
-    std::cout << "                     org.franca.core 0.13.1\n"
-                 "                     org.genivi.commonapi.core 3.2.0\n"
-                 "                     org.genivi.commonapi.someip 3.2.0.1"
+    std::cout << "*    org.franca.core 0.13.1\n"
+                 "*    org.genivi.commonapi.core 3.2.0\n"
+                 "*    org.genivi.commonapi.someip 3.2.0.1\n"
+                 "*    com.bst.ipc.deployment (Message Box) "
+              << BstIdl::MsgBoxGenerator::version() << "\n*    commit hash " << BstIdl::MsgBoxGenerator::commit_hash()
               << std::endl;
 }
 
@@ -240,7 +242,7 @@ int main(int argc, char *argv[])
             fs::path licFile(optarg);
             if (fs::exists(licFile) && fs::is_regular_file(licFile))
             {
-                std::ifstream ifs(licFile);
+                std::ifstream ifs(licFile.string());
                 if (!ifs.is_open())
                 {
                     std::cerr << "Failed to open " << licFile << std::endl;
@@ -316,6 +318,7 @@ int main(int argc, char *argv[])
     else
         std::cout << "Generation mode    : make" << std::endl;
     std::cout << "Generation type    : " << type << std::endl;
+    // std::cout << "Generate stub code : " << (generate_stub ? "true" : "false") << std::endl;
     std::cout << "Output dir         : " << dest_dir << std::endl;
 
     // parse file
@@ -352,6 +355,7 @@ int main(int argc, char *argv[])
     bool ret = true;
     if (type.empty())
         type = "auto";
+
     if (type == "auto")
     {
         std::list<std::string> spec_names;

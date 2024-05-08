@@ -18,6 +18,7 @@
 #include "model/FModelManager.h"
 #include "someipTools/FrancaSomeIPGeneratorExtensions.h"
 #include "utilities/string_utility.h"
+#include <fstream>
 namespace BstCommonAPI
 {
 void FTypeCollectionSomeIPDeploymentGenerator::generateTypeCollectionDeployment(

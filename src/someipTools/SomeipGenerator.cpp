@@ -22,7 +22,6 @@
 #include "someipTools/FInterfaceSomeIPProxyGenerator.h"
 #include "someipTools/FInterfaceSomeIPStubAdapterGenerator.h"
 #include "someipTools/FTypeCollectionSomeIPDeploymentGenerator.h"
-#include "someipTools/SomeipConfigGenerator.h"
 #include "someipTools/SomeipPropertyAccessor.h"
 #include "utilities/list_utility.h"
 #include "utilities/string_utility.h"
@@ -194,11 +193,6 @@ bool SomeipGenerator::generate()
                     interface, accessor, deployedProviders, genStub, m_destDir);
                 std::cout << "Done!" << std::endl;
             }
-        }
-        if (!isEmptyServer)
-        {
-            std::cout << "Generate config file : " << std::endl;
-            SomeipConfigGenerator::getInstance().generateConfigFiles(deployedProviders, m_destDir);
         }
     }
 

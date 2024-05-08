@@ -35,7 +35,7 @@ public:
     }
 
     // host 'providers'
-    //  auto strart config
+    /// parameters for auto strart config
     std::string getConfigType(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
     {
         return m_target->getEnum(std::static_pointer_cast<BstIdl::FDElement>(obj), "config_type");
@@ -64,7 +64,7 @@ public:
     {
         return m_target->getStringArray(std::static_pointer_cast<BstIdl::FDElement>(obj), "Require");
     }
-    // type
+    // type?
     std::string getServiceType(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
     {
         return m_target->getEnum(std::static_pointer_cast<BstIdl::FDElement>(obj), "ServiceType");
@@ -115,6 +115,10 @@ public:
         return m_target->getStringArray(std::static_pointer_cast<BstIdl::FDElement>(obj), "ReuseSLMSystemFileName");
     }
     //  module json
+    // std::list<std::string> getModuleNames(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    //{
+    //    return m_target->getStringArray(std::static_pointer_cast<BstIdl::FDElement>(obj), "module_name");
+    //}
     bool getModuleAutoStartup(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
     {
         bool isOK;
@@ -144,6 +148,123 @@ public:
     std::string getModuleLabel(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
     {
         return m_target->getEnum(std::static_pointer_cast<BstIdl::FDElement>(obj), "module_label");
+    }
+
+    /// parameters for vsomeip config json
+    // vsomeip property
+    bool getSomeIpConfigGenEnable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return m_target->getBoolean(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigGenEnable", isOK);
+    }
+    std::string getSomeIpClientHostUnicast(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getString(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigClientHostUnicast");
+    }
+    std::string getSomeIpServerHostUnicast(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getString(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigServerHostUnicast");
+    }
+    // logging
+    std::string getSomeIpLoggingLevel(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getEnum(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigLoggingLevel");
+    }
+    bool getSomeIpLoggingViaConsole(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return m_target->getBoolean(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigLoggingViaConsole",
+                                    isOK);
+    }
+    bool getSomeIpCreateLogFile(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return m_target->getBoolean(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigCreateLogFile",
+                                    isOK);
+    }
+    std::string getSomeIpLogFileAbsPath(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getString(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigLogFileAbsPath");
+    }
+    bool getSomeIpLoggingDLT(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return m_target->getBoolean(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigLoggingDLT", isOK);
+    }
+    bool getSomeIpVersionCyclicLogEable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return m_target->getBoolean(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                    "SomeIpConfigVersionCyclicLogEable", isOK);
+    }
+    int getSomeIpVersionLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigVersionLogInterval");
+    }
+    int getSomeIpMemoryLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigMemoryLogInterval");
+    }
+    int getSomeIpStatusLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpConfigStatusLogInterval");
+    }
+    // applications
+    std::list<std::string> getSomeIpApplicationNames(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getStringArray(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpApplicationNames");
+    }
+
+    std::list<std::string> getSomeIpApplicationIDs(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getStringArray(std::static_pointer_cast<BstIdl::FDElement>(obj), "SomeIpApplicationIDs");
+    }
+
+    // service-discovery
+    bool getSomeIpServiceDiscoveryEnable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return m_target->getBoolean(std::static_pointer_cast<BstIdl::FDElement>(obj), "ServiceDiscoveryEnable", isOK);
+    }
+    std::string getSomeIpServiceDiscoveryMulticastAddress(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getString(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                   "ServiceDiscoveryMulticastAddress");
+    }
+    int getSomeIpServiceDiscoveryPort(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj), "ServiceDiscoveryPort");
+    }
+    std::string getSomeIpServiceDiscoveryProtocol(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getEnum(std::static_pointer_cast<BstIdl::FDElement>(obj), "ServiceDiscoveryProtocol");
+    }
+    int getSomeIpServiceDiscoveryInitialDelayMin(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                    "ServiceDiscoveryInitialDelayMin");
+    }
+    int getSomeIpServiceDiscoveryInitialDelayMax(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                    "ServiceDiscoveryInitialDelayMax");
+    }
+    int getSomeIpServiceDiscoveryRepetitionsBaseDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                    "ServiceDiscoveryRepetitionsBaseDelay");
+    }
+    int getSomeIpServiceDiscoveryRepetitionsMax(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj), "ServiceDiscoveryRepetitionsMax");
+    }
+    int getSomeIpServiceDiscoveryttl(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj), "ServiceDiscoveryttl");
+    }
+    int getSomeIpServiceDiscoveryCyclicOfferDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                    "ServiceDiscoveryCyclicOfferDelay");
+    }
+    int getSomeIpServiceDiscoveryRequestResponseDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        return m_target->getInteger(std::static_pointer_cast<BstIdl::FDElement>(obj),
+                                    "ServiceDiscoveryRequestResponseDelay");
     }
 
     // host 'instances'

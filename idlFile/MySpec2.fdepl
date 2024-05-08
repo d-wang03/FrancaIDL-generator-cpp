@@ -1,0 +1,43 @@
+import "../idlFile/FDModel2.fidl"
+
+specification MySpec2{
+    for strings {
+		Str : String (default: "A string.");
+		StringProp : { p, q, r, s, t, u, v, w, x, y, z };
+		StringEnumArrayProp: { a, b, c }[]  (optional);
+		StringIntArrayProp: Integer[]  (optional);
+	}
+	for broadcasts{
+		BroascastProp :Integer;
+	}
+	for booleans{
+        BooleanProp : Boolean;
+    }
+	for attributes {
+		AttributeProp : Integer;
+		InterfaceRef : Interface (default: &fdmodel2.interface2);
+	}
+
+	for arguments {
+		ArgumentProp : Integer;
+	}
+	
+	for enumerations {
+		EnumerationProp: Integer;
+	}
+	
+	for enumerators {
+		EnumeratorProp: Integer;
+	}
+	
+    for methods {
+        CallSemantics: {synchronous, asynchronous};
+        PerformanceImpact: {none, medium, substantial} (optional);
+        IsOptional: Boolean; 
+    }
+
+	for type_collections {
+        TCProp : Integer;
+		TCAnotherProp : Integer;
+	}
+}

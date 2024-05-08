@@ -1,0 +1,22 @@
+import "../idlFile/ExtensionSpec.fdepl"
+import "../idlFile/FDModel2.fidl"
+import "../idlFile/testFDModel1.fidl"
+import "../idlFile/defineFDModel1.fdepl"
+
+define ExtensionSpec for provider as Server {
+    use FDModel1Def
+
+    instance fdmodel2.interface2 {
+        IPAddress = "192.168.2.4"
+        Port = 8822
+        AccessControl = local
+    }
+    instance fdmodel2.interface1 {
+        IPAddress = "192.168.2.4"
+        Port = 1412
+        AccessControl = global
+    }
+    ProcessName = "ServerA"
+}
+
+

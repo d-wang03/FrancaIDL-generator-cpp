@@ -47,6 +47,10 @@ bool ModelValidator::validateFModels()
             {
                 errorList.splice(errorList.end(), validate(type));
             }
+            for (const auto &constant : item->getConstants())
+            {
+                errorList.splice(errorList.end(), validate(constant));
+            }
         }
         for (const auto &item : model->getInterfaces())
         {
@@ -54,12 +58,18 @@ bool ModelValidator::validateFModels()
             {
                 errorList.splice(errorList.end(), validate(type));
             }
+            for (const auto &constant : item->getConstants())
+            {
+                errorList.splice(errorList.end(), validate(constant));
+            }
             for (const auto &i : item->getMethods())
             {
                 errorList.splice(errorList.end(), validate(i->getErrorType(), i));
             }
             std::string location = fmt::format("for {0}", item->getFQN());
             errorList.splice(errorList.end(), validate(item->getBroadcasts(), location));
+            errorList.splice(errorList.end(), validate(item->getMethods(), location));
+            // validate fixed size attributes
             errorList.splice(errorList.end(), validate(item->getMethods(), location));
         }
     }
@@ -155,7 +165,29 @@ std::list<std::string> ModelValidator::validate(const std::shared_ptr<FType> &ty
     errorList.splice(errorList.end(), validate(std::dynamic_pointer_cast<FStructType>(type)));
     errorList.splice(errorList.end(), validate(std::dynamic_pointer_cast<FUnionType>(type)));
     errorList.splice(errorList.end(), validate(std::dynamic_pointer_cast<FTypeDef>(type)));
+    errorList.splice(errorList.end(), validate(std::dynamic_pointer_cast<FArrayType>(type)));
 
+    return errorList;
+}
+
+std::list<std::string> ModelValidator::validate(const std::shared_ptr<FConstantDef> &constant)
+{
+    std::list<std::string> errorList;
+    if (!constant)
+        return errorList;
+    auto rhs = constant->getRhs();
+    auto type = constant->getType();
+    std::string value;
+    try
+    {
+        rhs->validate(type, constant->isArray());
+        rhs->EvaluableValidate(type, constant->isArray(), value, true);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        errorList.emplace_back(e.what());
+    }
     return errorList;
 }
 
@@ -205,6 +237,8 @@ std::list<std::string> ModelValidator::validate(const std::shared_ptr<FStructTyp
     for (const auto &item : type->getElements())
     {
         itemList.emplace_back(item->getName());
+        // validate fixed size field
+        errorList.splice(errorList.end(), validate(item));
     }
     auto parent = type->getBase();
     while (parent != nullptr)
@@ -239,6 +273,8 @@ std::list<std::string> ModelValidator::validate(const std::shared_ptr<FUnionType
     {
         nameList.emplace_back(item->getName());
         typeList.emplace_back(item->getType()->toString());
+        // validate fixed size field
+        errorList.splice(errorList.end(), validate(item));
     }
 
     auto parent = type->getBase();
@@ -284,6 +320,78 @@ std::list<std::string> ModelValidator::validate(const std::shared_ptr<FTypeDef> 
     return errorList;
 }
 
+std::list<std::string> ModelValidator::validate(const std::shared_ptr<FArrayType> &fArray)
+{
+    std::list<std::string> errorList;
+    if (!fArray || !fArray->isFixedSize())
+        return errorList;
+
+    // validate fixed size logicalOrExpression :BinaryOperation/UnaryOperation/QER/ConstantRef
+    auto rhs = fArray->getFixedSize();
+    auto typeRef = std::make_shared<FTypeRef>();
+    auto type = BstIdl::FBasicTypeId::get(2U);
+    typeRef->setPredefined(type);
+    std::string value;
+    try
+    {
+        rhs->EvaluableValidate(typeRef, true, value, true);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        errorList.emplace_back(e.what());
+    }
+    return errorList;
+}
+
+std::list<std::string> ModelValidator::validate(const std::shared_ptr<FArgument> &fArg)
+{
+    std::list<std::string> errorList;
+    if (!fArg || !fArg->isArray() || !fArg->isFixedSize())
+        return errorList;
+
+    // validate fixed size logicalOrExpression :BinaryOperation/UnaryOperation/QER/ConstantRef
+    auto rhs = fArg->getFixedSize();
+    auto typeRef = std::make_shared<FTypeRef>();
+    auto type = BstIdl::FBasicTypeId::get(2U);
+    typeRef->setPredefined(type);
+    std::string value;
+    try
+    {
+        rhs->EvaluableValidate(typeRef, true, value, true);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        errorList.emplace_back(e.what());
+    }
+    return errorList;
+}
+
+std::list<std::string> ModelValidator::validate(const std::shared_ptr<FField> &field)
+{
+    std::list<std::string> errorList;
+    if (!field || !field->isArray() || !field->isFixedSize())
+        return errorList;
+
+    // validate fixed size logicalOrExpression :BinaryOperation/UnaryOperation/QER/ConstantRef
+    auto rhs = field->getFixedSize();
+    auto typeRef = std::make_shared<FTypeRef>();
+    auto type = BstIdl::FBasicTypeId::get(2U);
+    typeRef->setPredefined(type);
+    std::string value;
+    try
+    {
+        rhs->EvaluableValidate(typeRef, true, value, true);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        errorList.emplace_back(e.what());
+    }
+    return errorList;
+}
+
 std::list<std::string> ModelValidator::validate(const std::list<std::shared_ptr<BstIdl::FBroadcast>> &elements,
                                                 const std::string &location)
 {
@@ -302,7 +410,7 @@ std::list<std::string> ModelValidator::validate(const std::list<std::shared_ptr<
             if (label.empty())
                 label = item->getName();
             auto bc_msg = label.substr(0, label.find_last_of(":"));
-            for (const auto out : item->getOutArgs())
+            for (const auto &out : item->getOutArgs())
                 bc_msg.append("\nOUT_ARGS: " + out->getType()->toStringRecursively());
 
             if (contains(labels, label))
@@ -314,6 +422,9 @@ std::list<std::string> ModelValidator::validate(const std::list<std::shared_ptr<
                 bc_msg_check.emplace_back(bc_msg);
                 labels.emplace_back(label);
             }
+            // validate fixed size argument
+            for (const auto &out : item->getOutArgs())
+                errorList.splice(errorList.end(), validate(out));
         }
     }
     return errorList;
@@ -351,9 +462,9 @@ std::list<std::string> ModelValidator::validate(const std::list<std::shared_ptr<
                 }
                 md_msg.append(ret);
             }
-            for (const auto in : item->getInArgs())
+            for (const auto &in : item->getInArgs())
                 md_msg.append("\nIN_ARGS: " + in->getType()->toStringRecursively());
-            for (const auto out : item->getOutArgs())
+            for (const auto &out : item->getOutArgs())
                 md_msg.append("\nOUT_ARGS: " + out->getType()->toStringRecursively());
 
             if (contains(labels, label))
@@ -365,6 +476,11 @@ std::list<std::string> ModelValidator::validate(const std::list<std::shared_ptr<
                 md_msg_check.emplace_back(md_msg);
                 labels.emplace_back(label);
             }
+            // validate fixed size argument
+            for (const auto &in : item->getInArgs())
+                errorList.splice(errorList.end(), validate(in));
+            for (const auto &out : item->getOutArgs())
+                errorList.splice(errorList.end(), validate(out));
         }
     }
     return errorList;

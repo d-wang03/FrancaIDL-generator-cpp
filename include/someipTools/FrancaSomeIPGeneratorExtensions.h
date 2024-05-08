@@ -17,18 +17,12 @@
 #define FRANCA_SOME_I_P_GENERATOR_EXTENSIONS
 #include "capicxx-core-tools/FrancaGeneratorExtensions.h"
 #include "someipTools/SomeipPropertyAccessor.h"
-#include <algorithm>
-#include <dirent.h>
-#include <fstream>
 #include <list>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <vector>
+
 namespace BstCommonAPI
 {
 class FrancaSomeIPGeneratorExtensions : public FrancaGeneratorExtensions
 {
-
 public:
     const int SOMEIP_DEFAULT_MIN_LENGTH = 0;
     const int SOMEIP_DEFAULT_MAX_LENGTH = 0;
@@ -45,8 +39,8 @@ public:
     virtual ~FrancaSomeIPGeneratorExtensions() = default;
     FrancaSomeIPGeneratorExtensions(const FrancaSomeIPGeneratorExtensions &) = default;
     FrancaSomeIPGeneratorExtensions(FrancaSomeIPGeneratorExtensions &&) noexcept = default;
-    FrancaSomeIPGeneratorExtensions &operator=(const FrancaSomeIPGeneratorExtensions &) = default;
-    FrancaSomeIPGeneratorExtensions &operator=(FrancaSomeIPGeneratorExtensions &&) = default;
+    FrancaSomeIPGeneratorExtensions &operator=(const FrancaSomeIPGeneratorExtensions &) = delete;
+    FrancaSomeIPGeneratorExtensions &operator=(FrancaSomeIPGeneratorExtensions &&) = delete;
 
     static FrancaSomeIPGeneratorExtensions &getInstance()
     {

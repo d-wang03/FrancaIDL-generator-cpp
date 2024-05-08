@@ -17,6 +17,7 @@
 #include "model/FModelManager.h"
 #include "someipTools/FTypeCollectionSomeIPDeploymentGenerator.h"
 #include "utilities/string_utility.h"
+#include <fstream>
 namespace BstCommonAPI
 {
 void FInterfaceSomeIPDeploymentGenerator::generateDeployment(const std::shared_ptr<BstIdl::FInterface> &fInterface,

@@ -1,0 +1,11 @@
+import "../idlFile/MySpec3.fdepl"
+import "../idlFile/FDModel2.fidl"
+    define MySpec3 for typeCollection fdmodel2.tc1{
+	    TCProp = -5
+	    TCAnotherProp = +5
+	    struct fdmodel2.tc1.a1{
+		    str {
+			    StringIntArrayProp = { -10, +20, -30 }
+	        }
+	    } 
+} 

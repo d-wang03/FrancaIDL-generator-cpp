@@ -1,0 +1,140 @@
+import "platform:/plugin/org.genivi.commonapi.someip/deployment/CommonAPI-4-SOMEIP_deployment_spec.fdepl"
+import "hello.fidl"
+import "platform:/plugin/com.bst.os.idl/deployment/asf_gen.fdepl"
+
+define org.genivi.commonapi.someip.deployment for interface com.bst.os.services.hello.HelloService {
+    SomeIpServiceID = 10800//service ID
+
+    method openCamera {//Method ID
+        SomeIpMethodID = 10801
+        SomeIpReliable = false 
+    }
+
+    method startRecord {//Method ID
+        SomeIpMethodID = 10802
+        SomeIpReliable = false 
+    }
+    
+    method stopRecord {//Method ID
+        SomeIpMethodID = 10803
+        SomeIpReliable = false 
+    }
+
+    method readRecord {//Method ID
+        SomeIpMethodID = 10804
+        SomeIpReliable = false 
+    }
+
+    attribute name {
+      SomeIpGetterID = 11219
+      SomeIpSetterID = 11220
+      SomeIpNotifierID = 51221        
+      SomeIpEventGroups = { 51222 }
+
+    }
+
+    attribute position {
+      SomeIpGetterID = 11221
+      SomeIpSetterID = 11222
+      SomeIpNotifierID = 51223
+      SomeIpEventGroups = { 51224 }
+
+    }
+    attribute status {
+      SomeIpGetterID = 11223
+      SomeIpSetterID = 11224
+      SomeIpNotifierID = 51225
+      SomeIpEventGroups = { 51226 }
+
+    } 
+    
+    broadcast firstBc {
+      SomeIpEventID = 38076
+      SomeIpEventGroups = { 38076 }
+ 
+   }
+    broadcast secondBc {
+      SomeIpEventID = 38077
+      SomeIpEventGroups = { 38077 }
+ 
+   }
+}
+
+define com.bst.os.idl.asf.deployment for provider as MyService {
+    // vsomeip configuration properties def
+    SomeIpConfigGenEnable = true
+    SomeIpConfigClientHostUnicast = "192.163.0.0"                           
+    SomeIpConfigServerHostUnicast = "10.28.9.13"            
+
+    SomeIpConfigLoggingLevel = error
+    SomeIpConfigLoggingViaConsole = true
+    SomeIpCreateLogFile = true
+    SomeIpLogFileAbsPath = "/userdata/abs/llll"
+    SomeIpLoggingDLT = false
+
+    SomeIpApplicationNames = {"server_sample", "client_sample"}
+    SomeIpApplicationIDs = {"0x632a", "0x632b"}
+
+    ServiceDiscoveryEnable = true
+    ServiceDiscoveryMulticastAddress = "196.2.2.4"
+    ServiceDiscoveryPort = 22664
+    ServiceDiscoveryInitialDelayMin = 10
+    ServiceDiscoveryInitialDelayMax = 200
+    ServiceDiscoveryRepetitionsBaseDelay = 20
+    ServiceDiscoveryRepetitionsMax = 300
+    ServiceDiscoveryttl = 20 
+    ServiceDiscoveryCyclicOfferDelay = 200
+    ServiceDiscoveryRequestResponseDelay = 150
+    ServiceDiscoveryProtocol = tcp
+
+    // auto-startup properties def
+    config_type = systemd
+    // json
+    module_auto_startup = true
+    module_auto_restart = true
+    module_max_start_action = ignore
+    module_max_start_dtc = "0xA10100"
+    module_version = "v1"
+    module_special_para = "env"
+    module_label = container
+    // systemd
+    ProcessName = "Diagnostic"
+    Description = "diagnostic service"
+    After = {"safety-service", "gen.target"}
+    Before = {"security-service", "aaa.target"}
+    Wants = {"ccc", "aaaaa"}
+    Require = {"bb", "abbbbaa"}
+
+    ServiceType = oneshot
+    ServiceBusName = "dbus-demo"
+    EnvironmentVars = {"VSOMEIP_CONFIGURATION=/etc/bstos_service/diagnosticservice/vsomeip-diag.json"}
+    SLMExecCommand = "/usr/bin/DiagnoseService"                  
+    ServiceExecCommand = {"/usr/bin/DiagnoseService", "/usr/bin/SafetyService"}                       
+    ExecArgs = {"-st", "${proc}"}
+    ServiceExecStartPre = {"-/bin/mkdir -p /run/thing", "-/bin/cp -r /run/thing ./"}
+    ServiceExecStopPost = {"/bin/chmod -R 777 /run/thing", "-/bin/cp -r ./ /run/thing"}
+    WantedBy = "multi-user.target"
+    //ReuseSLMSystemInclusionName = {"aaa", "bbb"}
+    //ReuseSLMSystemFileName = {"aaa.xml", "bbb.xml"}
+    instance com.bst.os.services.hello.HelloService as HelloServiceA{
+        //InstanceType = server
+        //UserLogicClassName = "MyLogicClass"
+        //UserLogicHeaderPath = "MyLogic.h"
+    }
+}
+
+
+define org.genivi.commonapi.someip.deployment for provider as MyServiceA {
+    // instance def
+    instance com.bst.os.services.hello.HelloService{
+
+        InstanceId = "com.bst.os.services.hello.HelloService"
+
+        SomeIpInstanceID = 10810
+
+        SomeIpUnicastAddress = "192.168.0.2"
+        SomeIpReliableUnicastPort = 30500
+        SomeIpUnreliableUnicastPort = 30501
+    }
+
+}

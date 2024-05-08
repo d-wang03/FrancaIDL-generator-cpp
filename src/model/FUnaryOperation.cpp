@@ -115,7 +115,7 @@ void FUnaryOperation::getStringValue(const uint32_t typeID, std::string &value)
     else if (typeID == FBasicTypeId::UINT64)
     {
         auto tmp = std::stoull(value, nullptr);
-        value = std::to_string(-(tmp));
+        value = "-" + std::to_string(tmp);
         return;
     }
     else

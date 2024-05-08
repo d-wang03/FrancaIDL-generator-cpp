@@ -17,7 +17,7 @@
 # include <cerrno>
 # include <climits>
 # include <cstdlib>
-# include <cstring>
+# include <cstring> // strerror
 # include <string>
 # include "parser.hh"
 # include "FidlParserPrivate.h"
@@ -52,7 +52,7 @@
 
 %}
 
-%option noyywrap nounput noinput batch
+%option noyywrap nounput noinput batch nounistd never-interactive
 %option prefix="bst"
 %{
     // A number symbol corresponding to the value in S.
@@ -126,32 +126,32 @@ blank       [ \t\r]
 ">="                    loc.step(); return bst::parser::make_GE  (loc);
 "=="                    loc.step(); return bst::parser::make_EQ  (loc);
 "!="                    loc.step(); return bst::parser::make_NE  (loc);
-","                        loc.step(); return bst::parser::make_COMMA  (loc);
-":"                        loc.step(); return bst::parser::make_COLON  (loc);
-"!"                        loc.step(); return bst::parser::make_EXCL  (loc);
-"~"                        loc.step(); return bst::parser::make_WAVE  (loc);
-"%"                        loc.step(); return bst::parser::make_PERCENT  (loc);
-"<"                        loc.step(); return bst::parser::make_LESS  (loc);
-">"                        loc.step(); return bst::parser::make_GREATER  (loc);
-"^"                        loc.step(); return bst::parser::make_POW  (loc);
+","                     loc.step(); return bst::parser::make_COMMA  (loc);
+":"                     loc.step(); return bst::parser::make_COLON  (loc);
+"!"                     loc.step(); return bst::parser::make_EXCL  (loc);
+"~"                     loc.step(); return bst::parser::make_WAVE  (loc);
+"%"                     loc.step(); return bst::parser::make_PERCENT  (loc);
+"<"                     loc.step(); return bst::parser::make_LESS  (loc);
+">"                     loc.step(); return bst::parser::make_GREATER  (loc);
+"^"                     loc.step(); return bst::parser::make_POW  (loc);
 "||"                    loc.step(); return bst::parser::make_OR  (loc);
-"?"                        loc.step(); return bst::parser::make_QUE  (loc);
+"?"                     loc.step(); return bst::parser::make_QUE  (loc);
 "=>"                    loc.step(); return bst::parser::make_ARRAW  (loc);
 "&&"                    loc.step(); return bst::parser::make_AND  (loc);
 "->"                    loc.step(); return bst::parser::make_POINT (loc);
 
  /*  Key words  */
-"package"                loc.step(); return bst::parser::make_PACKAGE    (loc);
+"package"               loc.step(); return bst::parser::make_PACKAGE    (loc);
 
 "import"                loc.step(); return bst::parser::make_IMPORT(loc);
 "model"                 loc.step(); return bst::parser::make_MODEL(loc);
 "from"                  loc.step(); return bst::parser::make_FROM(loc);
 
-"interface"                loc.step(); return bst::parser::make_INTERFACE (loc);
-"extends"                loc.step(); return bst::parser::make_EXTENDS (loc);
-"manages"                loc.step(); return bst::parser::make_MANAGES (loc);
+"interface"             loc.step(); return bst::parser::make_INTERFACE (loc);
+"extends"               loc.step(); return bst::parser::make_EXTENDS (loc);
+"manages"               loc.step(); return bst::parser::make_MANAGES (loc);
 
-"version"                loc.step(); return bst::parser::make_VERSION (loc);
+"version"               loc.step(); return bst::parser::make_VERSION (loc);
 "major"                 loc.step(); return bst::parser::make_MAJOR (loc);
 "minor"                 loc.step(); return bst::parser::make_MINOR (loc);
 
@@ -163,10 +163,10 @@ blank       [ \t\r]
 "method"                loc.step(); return bst::parser::make_METHOD (loc);
 "fireAndForget"         loc.step(); return bst::parser::make_FORGET (loc);
 "in"                    loc.step(); return bst::parser::make_IN (loc);
-"out"                    loc.step(); return bst::parser::make_OUT (loc);
-"error"                    loc.step(); return bst::parser::make_ERROR (loc);
-"broadcast"                loc.step(); return bst::parser::make_BROADCAST (loc);
-"selective"                loc.step(); return bst::parser::make_SELECTIVE (loc);
+"out"                   loc.step(); return bst::parser::make_OUT (loc);
+"error"                 loc.step(); return bst::parser::make_ERROR (loc);
+"broadcast"             loc.step(); return bst::parser::make_BROADCAST (loc);
+"selective"             loc.step(); return bst::parser::make_SELECTIVE (loc);
 "typeCollection"        loc.step(); return bst::parser::make_TYPECOLLECTION (loc);
 
 "struct"                loc.step(); return bst::parser::make_STRUCT (loc);
@@ -174,18 +174,18 @@ blank       [ \t\r]
 
 "enumeration"           loc.step(); return bst::parser::make_ENUM (loc);
 
-"map"                    loc.step(); return bst::parser::make_MAP (loc);
+"map"                   loc.step(); return bst::parser::make_MAP (loc);
 "to"                    loc.step(); return bst::parser::make_TO (loc);
 
 "array"                 loc.step(); return bst::parser::make_ARRAY (loc);
 "of"                    loc.step(); return bst::parser::make_OF (loc);
 
-"typedef"                loc.step(); return bst::parser::make_TYPEDEF (loc);
+"typedef"               loc.step(); return bst::parser::make_TYPEDEF (loc);
 "is"                    loc.step(); return bst::parser::make_IS (loc);
 "public"                loc.step(); return bst::parser::make_PUBLIC (loc);
 
-"union"                    loc.step(); return bst::parser::make_UNION (loc);
-"Integer"                loc.step(); return bst::parser::make_INTEGER (loc);
+"union"                 loc.step(); return bst::parser::make_UNION (loc);
+"Integer"               loc.step(); return bst::parser::make_INTEGER (loc);
 "minInt"                loc.step(); return bst::parser::make_MININT (loc);
 "maxInt"                loc.step(); return bst::parser::make_MAXINT (loc);
 "const"                 loc.step(); return bst::parser::make_CONST (loc);
@@ -194,16 +194,16 @@ blank       [ \t\r]
 "errorval"              loc.step(); return bst::parser::make_ERRORVAL (loc);
 
  /*  Predeined data types  */
-"UInt8"                    loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::UINT8),loc);
-"Int8"                    loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT8),loc);
+"UInt8"                 loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::UINT8),loc);
+"Int8"                  loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT8),loc);
 "UInt16"                loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::UINT16),loc);
-"Int16"                    loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT16),loc);
+"Int16"                 loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT16),loc);
 "UInt32"                loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::UINT32),loc);
-"Int32"                    loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT32),loc);
+"Int32"                 loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT32),loc);
 "UInt64"                loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::UINT64),loc);
-"Int64"                    loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT64),loc);
-"Boolean"                loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::BOOLEAN),loc);
-"Float"                    loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::FLOAT),loc);
+"Int64"                 loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::INT64),loc);
+"Boolean"               loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::BOOLEAN),loc);
+"Float"                 loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::FLOAT),loc);
 "Double"                loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::DOUBLE),loc);
 "String"                loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::STRING),loc);
 "ByteBuffer"            loc.step(); return bst::parser::make_BASIC_TYPE (FBasicTypeId::get(FBasicTypeId::BYTE_BUFFER),loc);

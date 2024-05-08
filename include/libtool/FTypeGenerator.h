@@ -67,6 +67,8 @@ public:
 
     bool hasImplementation(const std::shared_ptr<FType> &fType);
 
+    bool hasImplementation(const std::shared_ptr<FConstantDef> &fConst);
+
     static bool isdeprecated(const std::shared_ptr<FAnnotationBlock> &annotations);
 
     static std::string breaktext(std::string text, const FAnnotationType &annotation);
@@ -100,6 +102,8 @@ public:
     std::string generateFTypeDeclarations(const std::shared_ptr<FTypeCollection> &fTypeCollection);
 
     std::string generateFConstDeclarations(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection);
+
+    std::string generateFConstDefinitions(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection);
 
     void generateInheritanceIncludes(const std::shared_ptr<FInterface> &fInterface,
                                      std::list<std::string> &generatedHeaders, std::list<std::string> &libraryHeaders);

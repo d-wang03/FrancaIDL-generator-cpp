@@ -15,9 +15,9 @@
 #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
-PROJECT(GeneralserviceGenerator LANGUAGES CXX)
+PROJECT(GeneralServiceGenerator LANGUAGES CXX)
 
-file(GLOB GS_TOOL_SRCS "*.cpp")
+file(GLOB_RECURSE GS_TOOL_SRCS "*.cpp")
 list(SORT GS_TOOL_SRCS)
 
 add_library(${PROJECT_NAME} ${GS_TOOL_SRCS})

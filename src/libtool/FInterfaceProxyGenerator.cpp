@@ -17,6 +17,7 @@
 #include "FDModel/FDModel.h"
 #include "FDModel/FDModelManager.h"
 #include "utilities/string_utility.h"
+#include <fstream>
 
 namespace BstIdl
 {

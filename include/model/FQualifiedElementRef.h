@@ -25,7 +25,7 @@
 namespace BstIdl
 {
 
-class FQualifiedElementRef : public FExpression
+class FQualifiedElementRef : public FExpression, public std::enable_shared_from_this<FQualifiedElementRef>
 {
 public:
     FQualifiedElementRef() = default;
@@ -89,6 +89,11 @@ protected:
     std::shared_ptr<FField> m_field;
 
     bool isTypeMatch(const std::shared_ptr<FTypeRef> &src, const std::shared_ptr<FTypeRef> &dst);
+    std::shared_ptr<FEvaluableElement> getQerElementAndFQN(std::list<std::string> &splittedFqn);
+    std::shared_ptr<FTypeRef> getFieldType(const std::list<std::string> &_splitted_fqn,
+                                           std::shared_ptr<FConstantDef> &constDef);
+    std::shared_ptr<FInitializerExpression> getFieldExpression(const std::list<std::string> &_splitted_fqn,
+                                                               std::shared_ptr<FConstantDef> &constDef);
 };
 
 } // namespace BstIdl

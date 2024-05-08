@@ -16,41 +16,24 @@
 #ifndef MSG_BOX_BAREMETAL_STUB_GENERATOR_H
 #define MSG_BOX_BAREMETAL_STUB_GENERATOR_H
 
-#include "FDModel/FDExtensionElement.h"
-#include "FDModel/FDInterface.h"
-#include "generator/AbstractGenerator.h"
+#include "msgbox-tools/MsgBoxInfGenerator.h"
 
 namespace BstIdl
 {
 
-class BareMetalStubGenerator : public AbstractGenerator
+class StubGenerator : public MsgBoxInfGenerator
 {
 public:
-    BareMetalStubGenerator(const std::string &dest_dir, const std::string &src_id,
-                           const std::shared_ptr<FDExtensionElement> &instance)
-        : AbstractGenerator(dest_dir), m_srcEndID(src_id), m_instance(instance)
+    StubGenerator(const std::string &dest_dir, const std::string &src_id, const std::shared_ptr<FDExtensionElement> &instance)
+        : MsgBoxInfGenerator(dest_dir, src_id, instance)
     {
     }
-    ~BareMetalStubGenerator() = default;
-    bool generate() override;
+    ~StubGenerator() = default;
 
 private:
-    bool validate();
     bool generateHeader();
     bool generateSource();
-    std::string getMethodSignature(const std::shared_ptr<FMethod> &method);
-    std::string getBroadcastSignature(const std::shared_ptr<FBroadcast> &broadcast);
-    bool getIntegerProperty(const std::shared_ptr<FDElement> &element, const std::string &property, int32_t *value);
 
-    std::shared_ptr<FDExtensionElement> m_instance;
-    std::shared_ptr<FDInterface> m_interface;
-    std::string m_stubName;
-    std::string m_srcEndID;
-    std::string m_fid;
-    std::string m_folderPath;
-    uint8_t m_sid;
-    int32_t m_maxMethodNum;
-    int32_t m_maxBroadcastNum;
 };
 
 } // namespace BstIdl

@@ -22,6 +22,7 @@
 #include "someipTools/FrancaSomeIPGeneratorExtensions.h"
 #include "someipTools/SomeipPropertyAccessor.h"
 #include "utilities/string_utility.h"
+#include <fstream>
 #include <memory>
 namespace BstCommonAPI
 {

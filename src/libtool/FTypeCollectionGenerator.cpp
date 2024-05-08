@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #include "libtool/FTypeCollectionGenerator.h"
+#include <fstream>
+
 namespace BstIdl
 {
 std::string FTypeCollectionGenerator::generateHeader(const std::shared_ptr<FTypeCollection> &fTypeCollection)
@@ -79,26 +81,36 @@ std::string FTypeCollectionGenerator::generateSource(const std::shared_ptr<FType
     header += "\n" + genExtention.generateVersionNamespaceBegin(fTypeCollection);
     auto &mgr = FModelManager::getInstance();
     auto model = std::dynamic_pointer_cast<FModel>(fTypeCollection->getContainer());
-    header += "\n" + genExtention.generateNamespaceBeginDeclaration(model);
 
+    header += "\n" + genExtention.generateNamespaceBeginDeclaration(model);
+    header += FTypeGenerator::getInstance().generateFConstDefinitions(fTypeCollection) + "\n";
     header += "\n" + genExtention.generateNamespaceEndDeclaration(model);
     header += "\n" + genExtention.generateVersionNamespaceEnd(fTypeCollection);
     return header;
 }
 
-bool FTypeCollectionGenerator::hasSourceFile(const std::shared_ptr<FTypeCollection> &fTypeCollection)
+bool FTypeCollectionGenerator::hasSourceFile(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection)
 {
     bool hasTypeWithImplementation = false;
+    bool hasConstantWithImplementation = false;
     auto ins = FTypeGenerator::getInstance();
     for (auto type : fTypeCollection->getTypes())
     {
         if (ins.hasImplementation(type))
         {
             hasTypeWithImplementation = true;
-            break;
+            return true;
         }
     }
-    return hasTypeWithImplementation;
+    for (auto constdef : fTypeCollection->getConstants())
+    {
+        if (ins.hasImplementation(constdef))
+        {
+            hasConstantWithImplementation = true;
+            return true;
+        }
+    }
+    return false;
 }
 
 std::list<std::string> FTypeCollectionGenerator::getAllDerivedFStructTypeHeaderPaths(

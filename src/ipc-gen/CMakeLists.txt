@@ -17,16 +17,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 PROJECT(IPCGenerator LANGUAGES CXX)
 
-# find_package(Threads REQUIRED)
-
-# include_directories(../include)
-
 file(GLOB IPC_GEN_SRCS "*.cpp")
 list(SORT IPC_GEN_SRCS)
-
-# add_executable(${PROJECT_NAME} ${LIB_TOOL_SRCS})
-# add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-# target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads FDIDLParser IDLParser FValidator FModel FDModel FGenerator fmt stdc++fs)
 add_library(${PROJECT_NAME} ${IPC_GEN_SRCS})
 install(DIRECTORY doc DESTINATION bin/idl-tools)
-install(DIRECTORY examples DESTINATION bin/idl-tools)

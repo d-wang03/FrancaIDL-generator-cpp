@@ -34,6 +34,14 @@ protected:
     std::shared_ptr<ASFProviderPropertyAccessor> provider_;
     std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> someipproviderAccessor;
 
+private:
+    template <typename T1, typename T2, typename T3> auto provider_method(T1 &&func_ptr, T2 &&obj, T3 default_value)
+    {
+        if (type_ == DeploymentType::PROVIDER)
+            return provider_ ? (provider_.get()->*func_ptr)(obj) : default_value;
+        return default_value;
+    }
+
 public:
     ASFPropertyAccessor() = default;
     virtual ~ASFPropertyAccessor() = default;
@@ -59,6 +67,7 @@ public:
             std::cerr << "fdExt == nullptr without updatePropsForAll" << std::endl;
         }
     }
+    // get capi accessor?
 
     // host 'providers'
     //  auto strart config
@@ -111,7 +120,7 @@ public:
 
         return std::list<std::string>();
     }
-    // type
+    // type?
     std::string getServiceType(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
     {
         if (type_ == DeploymentType::PROVIDER && provider_)
@@ -249,6 +258,133 @@ public:
             return provider_->getModuleLabel(obj);
 
         return std::string();
+    }
+
+    /// parameters about someip config
+    // vsomeip
+    bool getSomeIpConfigGenEnable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return provider_ ? provider_->getSomeIpConfigGenEnable(obj, isOK) : isOK = false;
+    }
+
+    std::string getSomeIpClientHostUnicast(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::string ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpClientHostUnicast, obj, ret);
+    }
+    std::string getSomeIpServerHostUnicast(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::string ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServerHostUnicast, obj, ret);
+    }
+    // logging
+    std::string getSomeIpLoggingLevel(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::string ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpLoggingLevel, obj, ret);
+    }
+    bool getSomeIpLoggingViaConsole(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return provider_ ? provider_->getSomeIpLoggingViaConsole(obj, isOK) : isOK = false;
+    }
+    bool getSomeIpCreateLogFile(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return provider_ ? provider_->getSomeIpCreateLogFile(obj, isOK) : isOK = false;
+    }
+    std::string getSomeIpLogFileAbsPath(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::string ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpLogFileAbsPath, obj, ret);
+    }
+    bool getSomeIpLoggingDLT(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return provider_ ? provider_->getSomeIpLoggingDLT(obj, isOK) : isOK = false;
+    }
+    bool getSomeIpVersionCyclicLogEable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return provider_ ? provider_->getSomeIpVersionCyclicLogEable(obj, isOK) : isOK = false;
+    }
+    int getSomeIpVersionLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpVersionLogInterval, obj, ret);
+    }
+    int getSomeIpMemoryLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpMemoryLogInterval, obj, ret);
+    }
+    int getSomeIpStatusLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpStatusLogInterval, obj, ret);
+    }
+    // applications
+    std::list<std::string> getSomeIpApplicationNames(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::list<std::string> ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpApplicationNames, obj, ret);
+    }
+    std::list<std::string> getSomeIpApplicationIDs(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::list<std::string> ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpApplicationIDs, obj, ret);
+    }
+    // service-discovery
+    bool getSomeIpServiceDiscoveryEnable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
+    {
+        return provider_ ? provider_->getSomeIpServiceDiscoveryEnable(obj, isOK) : isOK = false;
+    }
+    std::string getSomeIpServiceDiscoveryMulticastAddress(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::string ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryMulticastAddress, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryPort(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryPort, obj, ret);
+    }
+
+    std::string getSomeIpServiceDiscoveryProtocol(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        std::string ret;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryProtocol, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryInitialDelayMin(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryInitialDelayMin, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryInitialDelayMax(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryInitialDelayMax, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryRepetitionsBaseDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryRepetitionsBaseDelay, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryRepetitionsMax(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryRepetitionsMax, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryttl(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryttl, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryCyclicOfferDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryCyclicOfferDelay, obj, ret);
+    }
+    int getSomeIpServiceDiscoveryRequestResponseDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
+    {
+        int ret = -1;
+        return provider_method(&ASFProviderPropertyAccessor::getSomeIpServiceDiscoveryRequestResponseDelay, obj, ret);
     }
 
     // host 'instances'

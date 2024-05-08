@@ -88,16 +88,25 @@ bool FInterfaceGenerator::needsSourceComment(std::shared_ptr<BstIdl::FType> &_ty
 bool FInterfaceGenerator::hasSourceFile(const std::shared_ptr<BstIdl::FInterface> &fInterface)
 {
     bool hasTypeWithImplementation = false;
+    bool hasConstantWithImplementation = false;
     auto ins = FTypeGenerator::getInstance();
     for (auto type : fInterface->getTypes())
     {
         if (ins.hasImplementation(type))
         {
             hasTypeWithImplementation = true;
-            break;
+            return true;
         }
     }
-    return hasTypeWithImplementation;
+    for (auto constdef : fInterface->getConstants())
+    {
+        if (ins.hasImplementation(constdef))
+        {
+            hasConstantWithImplementation = true;
+            return true;
+        }
+    }
+    return false;
 }
 
 std::string FInterfaceGenerator::generateHeader(const std::shared_ptr<BstIdl::FInterface> &fInterface,
@@ -209,6 +218,7 @@ std::string FInterfaceGenerator::generateSource(const std::shared_ptr<BstIdl::FI
         if (needsSourceComment(type))
             header += FTypeGenerator::generateComments(type, false);
     }
+    header += FTypeGenerator::getInstance().generateFConstDefinitions(fInterface, deploymentAccessor) + "\n";
     header += "\n" + genExtention.generateNamespaceEndDeclaration(model);
     header += "\n" + genExtention.generateVersionNamespaceEnd(fInterface);
     return header;

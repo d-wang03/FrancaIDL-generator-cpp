@@ -18,6 +18,7 @@
 
 #include "FFieldInitializer.h"
 #include "FInitializer.h"
+#include <algorithm>
 #include <list>
 #include <memory>
 
@@ -39,6 +40,7 @@ public:
         return m_elements;
     }
 
+    std::shared_ptr<FFieldInitializer> findElement(const std::string &_field_name) const;
     void validate(std::shared_ptr<FTypeRef> &type, bool isArray) override;
     void EvaluableValidate(std::shared_ptr<FTypeRef> &type, bool isArray, std::string &value,
                            bool is_init_exp) override;

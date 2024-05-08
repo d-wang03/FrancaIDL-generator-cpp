@@ -87,11 +87,15 @@ public:
     {
         return value == STRING;
     }
+    static bool isByteBuffer(uint32_t value)
+    {
+        return value == BYTE_BUFFER;
+    }
     uint32_t getValue() const
     {
         return m_value;
     }
-    std::string getName() const
+    std::string getName() const override
     {
         return m_name;
     }

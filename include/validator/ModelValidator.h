@@ -35,7 +35,6 @@ class FUnionType;
 class ModelValidator
 {
 public:
-
     static ModelValidator &getInstance();
     bool validate();
     bool validateFModels();
@@ -46,8 +45,12 @@ private:
     ~ModelValidator() = default;
 
     std::list<std::string> validate(const std::shared_ptr<FType> &type);
+    std::list<std::string> validate(const std::shared_ptr<FConstantDef> &constant);
     std::list<std::string> validate(const std::shared_ptr<FEnumerationType> &type,
                                     const std::shared_ptr<BstIdl::FObject> &object);
+    std::list<std::string> validate(const std::shared_ptr<FArrayType> &fArray);
+    std::list<std::string> validate(const std::shared_ptr<FArgument> &fArg);
+    std::list<std::string> validate(const std::shared_ptr<FField> &field);
     std::list<std::string> validate(const std::shared_ptr<FStructType> &type);
     std::list<std::string> validate(const std::shared_ptr<FUnionType> &type);
     std::list<std::string> validate(const std::shared_ptr<FTypeDef> &type);

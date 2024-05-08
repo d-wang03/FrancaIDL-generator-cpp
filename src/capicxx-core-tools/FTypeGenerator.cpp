@@ -836,11 +836,40 @@ std::string FTypeGenerator::generateFConstDeclarations(
     std::list<std::string> literals;
     for (const auto &fconst : fTypeCollection->getConstants())
     {
-        auto item = "static const " + FrancaGeneratorExtensions::getInstance().getTypeName(fconst, nullptr, false) +
-                    " " + fconst->getName() + " = " + printInitializerExpression(fconst->getRhs()) + ";";
+        std::string item;
+        if (fconst->getType() && fconst->getType()->getPredefined() &&
+            fconst->getType()->getPredefined()->getValue() <= 9)
+        {
+            item = "static const " + FrancaGeneratorExtensions::getInstance().getTypeName(fconst, nullptr, false) +
+                   " " + fconst->getName() + " = " + printInitializerExpression(fconst->getRhs()) + ";";
+        }
+        else
+        {
+            item = "static const " + FrancaGeneratorExtensions::getInstance().getTypeName(fconst, nullptr, false) +
+                   " " + fconst->getName() + ";";
+        }
         literals.emplace_back(std::move(item));
     }
-    return join(literals, "\n");
+    return "\n" + join(literals, "\n");
+}
+
+std::string FTypeGenerator::generateFConstDefinitions(
+    const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection,
+    const std::shared_ptr<CommonapiPropertyAccessor> &deploymentAccessor)
+{
+    std::list<std::string> literals;
+    for (const auto &fconst : fTypeCollection->getConstants())
+    {
+        if (fconst->getType() && fconst->getType()->getPredefined() &&
+            fconst->getType()->getPredefined()->getValue() <= 9)
+            continue;
+
+        auto item = "const " + FrancaGeneratorExtensions::getInstance().getTypeName(fconst, nullptr, false) + " " +
+                    FrancaGeneratorExtensions::getInstance().getElementName(fTypeCollection) +
+                    "::" + fconst->getName() + " = " + printInitializerExpression(fconst->getRhs()) + ";";
+        literals.emplace_back(std::move(item));
+    }
+    return "\n" + join(literals, "\n");
 }
 
 bool FTypeGenerator::hasImplementation(const std::shared_ptr<BstIdl::FType> &fType)
@@ -848,6 +877,13 @@ bool FTypeGenerator::hasImplementation(const std::shared_ptr<BstIdl::FType> &fTy
     if (std::dynamic_pointer_cast<BstIdl::FStructType>(fType))
         return std::dynamic_pointer_cast<BstIdl::FStructType>(fType)->isPolymorphic();
     return false;
+}
+
+bool FTypeGenerator::hasImplementation(const std::shared_ptr<BstIdl::FConstantDef> &fConst)
+{
+    if (fConst->getType() && fConst->getType()->getPredefined() && fConst->getType()->getPredefined()->getValue() <= 9)
+        return false;
+    return true;
 }
 
 std::string FTypeGenerator::generateKeyType(const std::shared_ptr<BstIdl::FMapType> &fMap)

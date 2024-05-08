@@ -43,7 +43,8 @@ public:
     }
 
     void validate(std::shared_ptr<FTypeRef> &type, bool isArray) override;
-    void EvaluableValidate(std::shared_ptr<FTypeRef> &type, bool isArray, std::string &value, bool is_init_exp);
+    void EvaluableValidate(std::shared_ptr<FTypeRef> &type, bool isArray, std::string &value,
+                           bool is_init_exp) override;
     void getStringValue(const uint32_t typeID, std::string &value);
     std::string toString() const override
     {

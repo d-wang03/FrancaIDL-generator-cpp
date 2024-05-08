@@ -36,6 +36,16 @@ public:
                             const std::shared_ptr<SomeipIDataPropertyAccessor> &delegate,
                             const std::shared_ptr<BstIdl::MappingGenericPropertyAccessor> &genericAccessor);
 
+    EnumBackingType getEnumBackingType(const std::shared_ptr<BstIdl::FEnumerationType> &obj) override
+    {
+        return OverwriteAccessor::getEnumBackingType(obj);
+    }
+
+    ErrorType getErrorType(const std::shared_ptr<BstIdl::FEnumerator> &obj) override
+    {
+        return OverwriteAccessor::getErrorType(obj);
+    }
+
     // host 'arrays'
 
     int getSomeIpArrayMinLength(const std::shared_ptr<BstIdl::FArrayType> &obj) override

@@ -19,11 +19,6 @@
 #include "FrancaGeneratorExtensions.h"
 #include "generator/AbstractGenerator.h"
 #include "model/FTypeCollection.h"
-#include <algorithm>
-#include <dirent.h>
-#include <fstream>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 namespace BstIdl
 {

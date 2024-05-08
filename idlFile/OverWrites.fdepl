@@ -1,0 +1,98 @@
+package fdmodel2
+import "../idlFile/MySpec3.fdepl"
+import "../idlFile/FDModel2.fidl"
+define MySpec3 for interface fdmodel2.interface2
+{
+    //attr
+    attribute attrB {}
+    attribute fdmodel2.interface2.attrS {
+        #struct {
+            StructProp = 100
+        }
+    }
+    //arg
+	method Method2 {
+		CallSemantics = synchronous
+        IsOptional = true
+        PerformanceImpact = none
+		in {
+			fdmodel2.interface2.Method2.argS {}
+        }
+        out {
+            argg{}
+        }
+	}
+    //typedef
+
+    //array
+    array fdmodel2.interface2.OtherArrayE {
+
+    }
+    array fdmodel2.interface2.OtherArrayS {
+        #struct {
+            StructProp = 50
+            MyStruct.field2 {
+
+            }
+        }
+    }
+
+    //struct
+    struct a2{
+        StructProp = 50
+    }
+
+    struct MyStruct {}
+
+    //union
+    union fdmodel2.interface2.MyUnion {}
+
+    union fdmodel2.interface2.MyUnion1 {
+        UnionProp  = 11
+    }
+
+    //typedef
+    
+    typedef NestedTypedef {
+        TypedefProp = 10
+    }
+    
+    typedef MyTypedef {
+
+    }
+
+    typedef fdmodel2.interface2.MyTypedef1 {}
+
+    typedef fdmodel2.interface2.MyStr {
+        TypedefProp =50
+    }
+
+   
+    //ENUM
+    enumeration fdmodel2.interface2.MyEnumeration {}
+
+    enumeration fdmodel2.interface2.OtherEnumeration {
+        EnumerationProp = 100
+        fdmodel2.interface2.OtherEnumeration.F1 {
+
+        }
+    }
+
+	array OtherArrayE {
+		ArrayProp = 520
+		#enumeration {
+            EnumerationProp = 50		
+		}
+    }
+
+    //map
+    map fdmodel2.interface2.Map1 {
+
+    }
+    //struct
+    struct MyStruct1 {
+        fdmodel2.interface2.MyStruct1.field3 {
+            
+        }
+    }
+}

@@ -16,6 +16,7 @@
 #include "asf-tools/GeneralServiceGeneratorExtensions.h"
 #include "FDModel/FDModelManager.h"
 #include "FDModel/FDeployedProvider.h"
+#include "asf-tools/FireAndForgetLimits.h"
 #include "asf-tools/MsgType.h"
 #include "capicxx-core-tools/FTypeGenerator.h"
 #include "capicxx-core-tools/FrancaGeneratorExtensions.h"
@@ -167,7 +168,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubSignatureWi
 {
     std::string signature = "const std::shared_ptr<CommonAPI::ClientId> _client";
 
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &it : replies)
         {
@@ -187,7 +188,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubSignatureWi
     if (!inf)
         return std::string();
     auto ns = inf->getNameSpace() + "::" + inf->getName() + "StubDefault::";
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &entry : replies)
         {
@@ -213,7 +214,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubSignatureTy
 {
     std::string signature = "const std::shared_ptr<CommonAPI::ClientId>";
 
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &it : replies)
         {
@@ -233,7 +234,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubSignatureTy
     if (!inf)
         return std::string();
     auto ns = inf->getNameSpace() + "::" + inf->getName() + "StubDefault::";
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &entry : replies)
         {
@@ -251,7 +252,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubSignature(
 {
     std::string signature = "const std::shared_ptr<CommonAPI::ClientId> _client";
 
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &it : replies)
         {
@@ -268,7 +269,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubSignature(
         signature += ", " + getTypeName(it, fMethod, true) + " _" + getElementName(it);
     }
 
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &entry : replies)
         {
@@ -294,7 +295,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubParaNames(
 {
     std::string paras = " _client";
 
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &it : replies)
         {
@@ -310,7 +311,7 @@ std::string GeneralServiceGeneratorExtensions::generateOverloadedStubParaNames(
     {
         paras += ", _" + getElementName(it);
     }
-    if (!fMethod->isFireAndForget())
+    if (!isFireAndForgetMethod(fMethod))
     {
         for (const auto &entry : replies)
         {
@@ -860,7 +861,6 @@ void GeneralServiceGeneratorExtensions::getSlotList(const std::shared_ptr<BstIdl
         return;
 
     std::list<std::string> tmp;
-    // interface
     auto baseInterfaces = BstIdl::FModelManager::getInstance().getBaseInterfaces(fInterface);
     for (const auto &inf : baseInterfaces)
     {
@@ -1046,7 +1046,6 @@ std::string GeneralServiceGeneratorExtensions::getLogicMethodDefine(const std::s
     else
         define += "const std::shared_ptr<CommonAPI::ClientId> _client)";
 
-    //{}
     std::list<std::string> inArgs_names;
     for (auto it : md->getInArgs())
     {
@@ -1358,7 +1357,7 @@ const bool GeneralServiceGeneratorExtensions::isCorrectRecordMethod(const std::s
     if (name == "startRecord" || name == "readRecord")
     {
         if (fMethod->getErrorType() == nullptr && fMethod->getInArgs().size() == 1 && fMethod->getOutArgs().empty() &&
-            !fMethod->isFireAndForget())
+            !isFireAndForgetMethod(fMethod))
         {
             const auto arg = fMethod->getInArgs().front();
             auto type = arg->getType()->getPredefined();
@@ -1374,7 +1373,7 @@ const bool GeneralServiceGeneratorExtensions::isCorrectRecordMethod(const std::s
     else if (name == "stopRecord")
     {
         if (fMethod->getErrorType() == nullptr && fMethod->getInArgs().empty() && fMethod->getOutArgs().empty() &&
-            !fMethod->isFireAndForget())
+            !isFireAndForgetMethod(fMethod))
         {
             isCorrect = true;
         }
@@ -1391,7 +1390,7 @@ const bool GeneralServiceGeneratorExtensions::isCorrectRecordFDMethod(const std:
 
     bool isCorrect = false;
     auto someipAccessor =
-        getSomeipAccessor(std::dynamic_pointer_cast<BstIdl::FInterface>(fdMethod->getTarget()->getContainer()));
+        getSomeipAccessor(std::dynamic_pointer_cast<BstIdl::FTypeCollection>(fdMethod->getTarget()->getContainer()));
     if (name == "startRecord" || name == "readRecord")
     {
         auto in_args = fdMethod->getInArguments();
@@ -1463,7 +1462,9 @@ std::string GeneralServiceGeneratorExtensions::getRecordDefineInLogic(const std:
     if (!isRecordAndSimulateInterface(std::dynamic_pointer_cast<BstIdl::FInterface>(fMethod->getContainer())))
         return std::string("");
     if (contains(record_simulate_methods, name) && name.compare("startRecord") == 0)
+    {
         return "\n\tsetPath(_path);\n\t_reply();";
+    }
     return std::string("");
 }
 
@@ -1634,5 +1635,372 @@ bool GeneralServiceGeneratorExtensions::hasUserLogic(const std::shared_ptr<BstId
 {
     return !(getUserLogicName(instance).empty() || getUserLogicHeaderPath(instance).empty());
 }
-// generateRequiredTypeIncludes
+
+bool GeneralServiceGeneratorExtensions::isFireAndForgetMethod(const std::shared_ptr<BstIdl::FMethod> &method) const
+{
+    auto inf = std::dynamic_pointer_cast<BstIdl::FInterface>(method->getContainer());
+    return method->isFireAndForget() && !BstIdl::FireAndForgetLimits::getInstance().isAsfInterface(inf);
+}
+
+// vsomeip config extensions
+std::string GeneralServiceGeneratorExtensions::isReliable(const std::shared_ptr<BstIdl::FBroadcast> &_broadcast)
+{
+    auto someipAccessor =
+        getSomeipAccessor(std::dynamic_pointer_cast<BstIdl::FTypeCollection>(_broadcast->getContainer()));
+    auto value = someipAccessor->getSomeIpReliable(_broadcast);
+    if (value != -1)
+    {
+        if (value == 0)
+            return "false";
+        else
+            return "true";
+    }
+    return "false";
+}
+
+std::string GeneralServiceGeneratorExtensions::isReliable(const std::shared_ptr<BstIdl::FMethod> &_method)
+{
+    auto someipAccessor =
+        getSomeipAccessor(std::dynamic_pointer_cast<BstIdl::FTypeCollection>(_method->getContainer()));
+    auto value = someipAccessor->getSomeIpReliable(_method);
+    if (value != -1)
+    {
+        if (value == 0)
+            return "false";
+        else
+            return "true";
+    }
+    return "false";
+}
+
+std::string GeneralServiceGeneratorExtensions::isNotifierReliable(const std::shared_ptr<BstIdl::FAttribute> &_attribute)
+{
+    auto someipAccessor =
+        getSomeipAccessor(std::dynamic_pointer_cast<BstIdl::FTypeCollection>(_attribute->getContainer()));
+    bool value = someipAccessor->getSomeIpNotifierReliable(_attribute);
+    return value ? "true" : "false";
+}
+
+std::string GeneralServiceGeneratorExtensions::getServerHostMessage(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    if (!_provider || !_accessor)
+        return std::string();
+    else
+        return std::string("\n\t\"unicast\": \"" + _accessor->getSomeIpServerHostUnicast(_provider) + "\"");
+}
+
+std::string GeneralServiceGeneratorExtensions::getClientHostMessage(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    if (!_provider || !_accessor)
+        return std::string();
+    else
+        return std::string("\n\t\"unicast\": \"" + _accessor->getSomeIpClientHostUnicast(_provider) + "\"");
+}
+
+std::string GeneralServiceGeneratorExtensions::getLogging(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                                          const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    if (!_provider || !_accessor)
+        return std::string();
+
+    std::string logging("");
+    auto level = _accessor->getSomeIpLoggingLevel(_provider);
+    if (level.empty())
+        return logging;
+    std::list<std::string> content;
+    content.emplace_back("\n\t\t\"level\" : \"" + level + "\"");
+    bool isOK;
+    auto consoleEnable =
+        _accessor->getSomeIpLoggingViaConsole(_provider, isOK) ? std::string("true") : std::string("false");
+    if (isOK)
+        content.emplace_back("\n\t\t\"consolve\" : \"" + consoleEnable + "\"");
+    auto logFileEnable =
+        _accessor->getSomeIpCreateLogFile(_provider, isOK) ? std::string("true") : std::string("false");
+    if (isOK)
+    {
+        auto logFileAbsPath = _accessor->getSomeIpLogFileAbsPath(_provider);
+        content.emplace_back("\n\t\t\"file\" : { \"enable\" : \"" + logFileEnable + "\", \"path\" : \"" +
+                             logFileAbsPath + "\" }");
+    }
+    auto diagnoseAndTraceEnable =
+        _accessor->getSomeIpLoggingDLT(_provider, isOK) ? std::string("true") : std::string("false");
+    if (isOK)
+        content.emplace_back("\n\t\t\"dlt\" : \"" + diagnoseAndTraceEnable + "\"");
+    auto versionCyclicLogEable =
+        _accessor->getSomeIpVersionCyclicLogEable(_provider, isOK) ? std::string("true") : std::string("false");
+    auto versionLogInterval = _accessor->getSomeIpVersionLogInterval(_provider);
+    content.emplace_back("\n\t\t\"version\" : {\"enable\" : " + versionCyclicLogEable + ", \"interval\" : \"" +
+                         std::to_string(versionLogInterval) + "\"}");
+    auto memoryLogInterval = _accessor->getSomeIpMemoryLogInterval(_provider);
+    auto statusLogInterval = _accessor->getSomeIpStatusLogInterval(_provider);
+    if (memoryLogInterval > 0)
+        content.emplace_back("\n\t\t\"memory_log_interval\" : \"" + std::to_string(memoryLogInterval) + "\"");
+    if (statusLogInterval > 0)
+        content.emplace_back("\n\t\t\"status_log_interval\" : \"" + std::to_string(statusLogInterval) + "\"");
+
+    logging.append("\n\t\"logging\" : \n\t{" + join(content, ",") + "\n\t}");
+    return logging;
+}
+
+std::string GeneralServiceGeneratorExtensions::getServiceDiscovery(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    if (!_provider || !_accessor)
+        return std::string();
+
+    bool isOK;
+    auto sd_enable = _accessor->getSomeIpServiceDiscoveryEnable(_provider, isOK);
+    if (!isOK)
+        return std::string();
+    if (!sd_enable)
+        return std::string("\n\t\"service-discovery\" : \n\t{\n\t\t\"enable\" : \"false\"\n\t}");
+    auto multicast = _accessor->getSomeIpServiceDiscoveryMulticastAddress(_provider);
+    auto port = _accessor->getSomeIpServiceDiscoveryPort(_provider);
+    auto protocol = _accessor->getSomeIpServiceDiscoveryProtocol(_provider);
+    auto initial_delay_min = _accessor->getSomeIpServiceDiscoveryInitialDelayMin(_provider);
+    auto initial_delay_max = _accessor->getSomeIpServiceDiscoveryInitialDelayMax(_provider);
+    auto repetitions_base_delay = _accessor->getSomeIpServiceDiscoveryRepetitionsBaseDelay(_provider);
+    auto repetitions_max = _accessor->getSomeIpServiceDiscoveryRepetitionsMax(_provider);
+    auto ttl = _accessor->getSomeIpServiceDiscoveryttl(_provider);
+    auto cyclic_offer_delay = _accessor->getSomeIpServiceDiscoveryCyclicOfferDelay(_provider);
+    auto request_response_delay = _accessor->getSomeIpServiceDiscoveryRequestResponseDelay(_provider);
+
+    std::list<std::string> content;
+    content.emplace_back("\n\t\t\"enable\" : \"false\"");
+    content.emplace_back("\n\t\t\"multicast\" : \"" + multicast + "\"");
+    content.emplace_back("\n\t\t\"port\" : \"" + std::to_string(port) + "\"");
+    content.emplace_back("\n\t\t\"protocol\" : \"" + protocol + "\"");
+    content.emplace_back("\n\t\t\"initial_delay_min\" : \"" + std::to_string(initial_delay_min) + "\"");
+    content.emplace_back("\n\t\t\"initial_delay_max\" : \"" + std::to_string(initial_delay_max) + "\"");
+    content.emplace_back("\n\t\t\"repetitions_base_delay\" : \"" + std::to_string(repetitions_base_delay) + "\"");
+    content.emplace_back("\n\t\t\"repetitions_max\" : \"" + std::to_string(repetitions_max) + "\"");
+    content.emplace_back("\n\t\t\"ttl\" : \"" + std::to_string(ttl) + "\"");
+    content.emplace_back("\n\t\t\"cyclic_offer_delay\" : \"" + std::to_string(cyclic_offer_delay) + "\"");
+    content.emplace_back("\n\t\t\"request_response_delay\" : \"" + std::to_string(request_response_delay) + "\"");
+    std::string service_discovery("\n\t\"service-discovery\" : \n\t{" + join(content, ",") + "\n\t}");
+    return service_discovery;
+}
+
+std::string GeneralServiceGeneratorExtensions::getApplications(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    if (!_provider || !_accessor)
+        return std::string();
+    auto appList = getApplication(_provider, _accessor);
+    std::string applications("\n\t\"applications\" : \n\t[" + join(appList, ",") + "\n\t]");
+    return applications;
+}
+
+std::list<std::string> GeneralServiceGeneratorExtensions::getApplication(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    std::list<std::string> apps;
+    if (!_provider || !_accessor)
+        return apps;
+    auto names = _accessor->getSomeIpApplicationNames(_provider);
+    auto ids = _accessor->getSomeIpApplicationIDs(_provider);
+    if (ids.size() != names.size() || ids.empty())
+        return apps;
+
+    while (!names.empty() && !ids.empty())
+    {
+        auto name = names.front();
+        auto id = ids.front();
+        names.pop_front();
+        ids.pop_front();
+        std::string content("");
+        content.append("\n\t\t\t\"name\" : \"" + name + "\",");
+        content.append("\n\t\t\t\"id\" : \"" + id + "\"");
+        apps.emplace_back("\n\t\t{" + content + "\n\t\t}");
+    }
+    return apps;
+}
+// vsomeip services
+std::string GeneralServiceGeneratorExtensions::getServices(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_someipProvider,
+    const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    if (!_provider || !_someipProvider || !_accessor)
+        return std::string();
+    auto serviceList = getService(_provider, _someipProvider, _accessor);
+    std::string services("\n\t\"services\" : \n\t[" + join(serviceList, ",") + "\n\t]");
+    return services;
+}
+std::list<std::string> GeneralServiceGeneratorExtensions::getService(
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+    const std::shared_ptr<BstIdl::FDExtensionRoot> &_someipProvider,
+    const std::shared_ptr<ASFPropertyAccessor> &_accessor)
+{
+    std::list<std::string> serviceList;
+    if (!_provider || !_accessor)
+        return serviceList;
+
+    for (const auto &ins : _provider->getInstances())
+    {
+        if (!ins)
+            continue;
+        auto iter = std::find_if(_someipProvider->getInstances().cbegin(), _someipProvider->getInstances().cend(),
+                                 [&ins](auto item) { return item->getTarget() == ins->getTarget(); });
+        if (iter == _someipProvider->getInstances().cend())
+            continue;
+        auto someip_ins = *iter;
+        auto fInterface = std::dynamic_pointer_cast<BstIdl::FInterface>(ins->getTarget());
+        auto inf_accessor = getSomeipAccessor(fInterface);
+        auto service = inf_accessor->getSomeIpServiceID(fInterface);
+        auto events = getEvents(ins, inf_accessor);
+        auto eventgroups = getEventGroups(ins, inf_accessor);
+
+        auto ins_accessor = std::make_shared<BstCommonAPI::SomeipPropertyAccessor>(
+            std::make_shared<BstIdl::FDeployedProvider>(_someipProvider));
+        auto instance = ins_accessor->getSomeIpInstanceID(someip_ins);
+        auto reliable = ins_accessor->getSomeIpReliableUnicastPort(someip_ins);
+        auto unreliable = ins_accessor->getSomeIpUnreliableUnicastPort(someip_ins);
+
+        std::list<std::string> content;
+        content.emplace_back("\n\t\t\t\"service\" : \"" + std::to_string(service) + "\"");
+        content.emplace_back("\n\t\t\t\"instance\" : \"" + std::to_string(instance) + "\"");
+        content.emplace_back("\n\t\t\t\"reliable\" : \"" + std::to_string(reliable) + "\"");
+        content.emplace_back("\n\t\t\t\"unreliable\" : \"" + std::to_string(unreliable) + "\"");
+        if (!events.empty())
+            content.emplace_back(events);
+        if (!eventgroups.empty())
+            content.emplace_back(eventgroups);
+        serviceList.emplace_back("\n\t\t{" + join(content, ",") + "\n\t\t}");
+    }
+
+    return serviceList;
+}
+std::string GeneralServiceGeneratorExtensions::getEvents(
+    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    std::string events("\n\t\t\t\"events\" : ");
+    auto eventList = getEvent(_instance, _accessor);
+    if (eventList.empty())
+        return std::string();
+    events.append("\n\t\t\t[" + join(eventList, ",") + "\n\t\t\t]");
+    return events;
+}
+std::list<std::string> GeneralServiceGeneratorExtensions::getEvent(
+    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    std::list<std::string> eventList;
+    auto fInterface = std::dynamic_pointer_cast<BstIdl::FInterface>(_instance->getTarget());
+
+    for (const auto &bc : fInterface->getBroadcasts())
+    {
+        auto event_id = getEventID(bc, _accessor);
+        std::string event("\n\t\t\t\t{\n\t\t\t\t\t\"event\" : \"" + event_id + "\",");
+        event.append("\n\t\t\t\t\t\"is_field\" : \"false\",");
+        event.append("\n\t\t\t\t\t\"is_reliable\" : \"" + isReliable(bc) + "\"\n\t\t\t\t}");
+        eventList.emplace_back(event);
+    }
+    for (const auto &attr : fInterface->getAttributes())
+    {
+        auto event_id = getNotifierID(attr, _accessor);
+        std::string event("\n\t\t\t\t{\n\t\t\t\t\t\"event\" : \"" + event_id + "\",");
+        event.append("\n\t\t\t\t\t\"is_field\" : \"true\",");
+        event.append("\n\t\t\t\t\t\"is_reliable\" : \"" + isNotifierReliable(attr) + "\"\n\t\t\t\t}");
+        eventList.emplace_back(event);
+    }
+    return eventList;
+}
+std::string GeneralServiceGeneratorExtensions::getEventGroups(
+    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    std::string eventgroups("\n\t\t\t\"eventgroups\" : ");
+    auto eventgroupList = getEventGroup(_instance, _accessor);
+    if (eventgroupList.empty())
+        return std::string();
+    eventgroups.append("\n\t\t\t[" + join(eventgroupList, ",") + "\n\t\t\t]");
+    return eventgroups;
+}
+std::list<std::string> GeneralServiceGeneratorExtensions::getEventGroup(
+    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    std::list<std::string> eventgroups;
+    auto fInterface = std::dynamic_pointer_cast<BstIdl::FInterface>(_instance->getTarget());
+
+    for (const auto &bc : fInterface->getBroadcasts())
+    {
+        auto events_id = getEventID(bc, _accessor);
+        for (const auto &id : getEventGroupsID(bc, _accessor))
+        {
+            std::string eventgroup("\n\t\t\t\t{\n\t\t\t\t\t\"eventgroup\" : \"" + id + "\",");
+            eventgroup.append("\n\t\t\t\t\t\"events\" : [\"" + events_id + "\"]\n\t\t\t\t}");
+            eventgroups.emplace_back(eventgroup);
+        }
+    }
+    for (const auto &attr : fInterface->getAttributes())
+    {
+        auto events_id = getNotifierID(attr, _accessor);
+        for (const auto &id : getNotifierEventGroupsID(attr, _accessor))
+        {
+            std::string eventgroup("\n\t\t\t\t{\n\t\t\t\t\t\"eventgroup\" : \"" + id + "\",");
+            eventgroup.append("\n\t\t\t\t\t\"events\" : [\"" + events_id + "\"]\n\t\t\t\t}");
+            eventgroups.emplace_back(eventgroup);
+        }
+    }
+
+    return eventgroups;
+}
+
+std::string GeneralServiceGeneratorExtensions::getEventID(
+    const std::shared_ptr<BstIdl::FBroadcast> &_broadcast,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    int value = _accessor->getSomeIpEventID(_broadcast);
+    if (value != -1)
+    {
+        return std::to_string(value);
+    }
+    return "UNDEFINED_EVENT_ID";
+}
+
+std::string GeneralServiceGeneratorExtensions::getNotifierID(
+    const std::shared_ptr<BstIdl::FAttribute> &_attribute,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    auto value = _accessor->getSomeIpNotifierID(_attribute);
+    if (value != -1)
+    {
+        return std::to_string(value);
+    }
+    return "UNDEFINED_NOTIFIER_ID";
+}
+
+std::list<std::string> GeneralServiceGeneratorExtensions::getEventGroupsID(
+    const std::shared_ptr<BstIdl::FBroadcast> &_broadcast,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    std::list<std::string> strs;
+    std::list<int> value = _accessor->getSomeIpEventGroups(_broadcast);
+    if (!value.empty())
+    {
+        for (const auto &it : value)
+        {
+            strs.emplace_back(std::to_string(it));
+        }
+    }
+    return strs;
+}
+
+std::list<std::string> GeneralServiceGeneratorExtensions::getNotifierEventGroupsID(
+    const std::shared_ptr<BstIdl::FAttribute> &_attribute,
+    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor)
+{
+    std::list<std::string> strs;
+    std::list<int> value = _accessor->getSomeIpEventGroups(_attribute);
+    if (!value.empty())
+        for (const auto &it : value)
+            strs.emplace_back(std::to_string(it));
+    return strs;
+}
+
 } // namespace BstASF

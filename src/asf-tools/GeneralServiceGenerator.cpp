@@ -15,15 +15,16 @@
  */
 #include "asf-tools/GeneralServiceGenerator.h"
 #include "FDModel/FDModelManager.h"
-#include "asf-tools/AutoStartUpConfigGenerator.h"
-#include "asf-tools/CMakeGenerator.h"
-#include "asf-tools/CommonapiConfigGenerator.h"
-#include "asf-tools/FInterfaceLogicDefaultGenerator.h"
-#include "asf-tools/FInterfaceStubImplGenerator.h"
+#include "asf-tools/FireAndForgetLimits.h"
 #include "asf-tools/GeneralServiceGeneratorExtensions.h"
-#include "asf-tools/MainFileGenerator.h"
-#include "asf-tools/TypeConversionGenerator.h"
-#include "model/FireAndForgetLimits.h"
+#include "asf-tools/asf-gen/CMakeGenerator.h"
+#include "asf-tools/asf-gen/CommonapiConfigGenerator.h"
+#include "asf-tools/asf-gen/FInterfaceLogicDefaultGenerator.h"
+#include "asf-tools/asf-gen/FInterfaceStubImplGenerator.h"
+#include "asf-tools/asf-gen/MainFileGenerator.h"
+#include "asf-tools/asf-gen/TypeConversionGenerator.h"
+#include "asf-tools/auto-startup/AutoStartUpConfigGenerator.h"
+#include "asf-tools/vsomeip-config/VSomeIPConfigGenerator.h"
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
@@ -48,7 +49,8 @@ bool GeneralServiceGenerator::generate()
     std::list<std::shared_ptr<BstIdl::FDTypes>> deployedTypes;
     std::list<std::shared_ptr<BstIdl::FDInterface>> coreDeployedInterfaces;
     std::list<std::shared_ptr<BstIdl::FDTypes>> coreDeployedTypes;
-    std::list<std::shared_ptr<BstIdl::FDExtensionRoot>> deployedProviders;
+    std::shared_ptr<BstIdl::FDExtensionRoot> deployedProvider;
+    std::shared_ptr<BstIdl::FDExtensionRoot> someipDeployedProvider;
     std::list<std::string> deployedImports;
     std::list<std::string> spec_names;
     for (const auto &fdmodel : fdmodels.getModelList())
@@ -81,7 +83,7 @@ bool GeneralServiceGenerator::generate()
                     addListItem(deployedTypes, ptr);
                 else if (auto ptr = std::dynamic_pointer_cast<BstIdl::FDExtensionRoot>(item))
                 {
-                    addListItem(deployedProviders, ptr);
+                    someipDeployedProvider = ptr;
                     gen.initSomeipProviderAccessor(ptr);
                 }
                 else
@@ -101,7 +103,6 @@ bool GeneralServiceGenerator::generate()
     for (auto t : deployedTypes)
         for (auto s : coreDeployedTypes)
             gen.mergeDeployments(s, t);
-
     std::cout << "Creating accessors...";
     for (const auto &fmodel : fmodels.getModelList())
     {
@@ -128,7 +129,7 @@ bool GeneralServiceGenerator::generate()
     {
         // get all servers of asf depl
         auto &method_limits = BstIdl::FireAndForgetLimits::getInstance();
-        addListItem(deployedProviders, asf_depl);
+        deployedProvider = asf_depl;
         gen.initAccessor(asf_depl);
         for (const auto &instance : asf_depl->getElements())
         {
@@ -148,7 +149,7 @@ bool GeneralServiceGenerator::generate()
     // generate code.
     std::cout << "Start code generation" << std::endl;
 
-    std::cout << "Generate auto-startup config files ..." << std::endl;
+    std::cout << "Generate auto-startup config files ...";
     auto asf_provider = fdmodels.findProviderDeployment("com.bst.os.idl.asf.deployment");
     auto asf_accessor = gen.getAccessor();
     AutoStartUpConfigGenerator::getInstance().setLicense(getLicense());
@@ -179,19 +180,18 @@ bool GeneralServiceGenerator::generate()
             if (isServer)
             {
                 BstASF::FInterfaceStubImplGenerator &stubImpl = FInterfaceStubImplGenerator::getInstance();
-                std::cout << "Generate stubImpl code for " << interface->getName() << "...";
+                std::cerr << "Generate stubImpl code for " << interface->getName() << "...";
                 stubImpl.setLicense(getLicense());
                 stubImpl.generateStubImpl(interface, accessor, m_destDir);
-                std::cout << "Done!" << std::endl;
-                std::cout << "Generate LogicDefault code for server: " << interface->getName() << "...";
+                std::cerr << "Done!" << std::endl;
+                std::cerr << "Generate LogicDefault code for server: " << interface->getName() << "...";
                 FInterfaceLogicDefaultGenerator::getInstance().setLicense(getLicense());
                 FInterfaceLogicDefaultGenerator::getInstance().generateLogicDefault(interface, accessor, m_destDir);
-                std::cout << "Done!" << std::endl;
+                std::cerr << "Done!" << std::endl;
             }
         }
     }
-
-    std::cout << "Generate main code for all these models "
+    std::cerr << "Generate main code for all these models "
               << "...";
     MainFileGenerator::getInstance().setLicense(getLicense());
     MainFileGenerator::getInstance().generateMain(m_destDir);
@@ -209,11 +209,17 @@ bool GeneralServiceGenerator::generate()
     CMakeGenerator::getInstance().generateCMake(m_destDir, iftest_gen);
     std::cout << "Done!" << std::endl;
 
-    std::cout << "Generate typeconversion code for interfaces..." << std::endl;
+    std::cout << "Generate typeconversion code for interfaces...";
     TypeConversionGenerator::getInstance().setLicense(getLicense());
     TypeConversionGenerator::getInstance().generateConversionFile(m_destDir);
     std::cout << "Done!" << std::endl;
 
+    if (!gen.isEmptyServer())
+    {
+        std::cout << "Generate vsomeip config files :\n";
+        VSomeIPConfigGenerator::getInstance().generateConfigFiles(deployedProvider, someipDeployedProvider, m_destDir);
+        std::cout << "Done!" << std::endl;
+    }
     return true;
 }
 

@@ -482,8 +482,6 @@ std::shared_ptr<BstIdl::FObject> FModelManager::findElement(const std::string &f
         type = ptr;
     else if (auto ptr = std::dynamic_pointer_cast<BstIdl::FField>(obj))
         type = ptr->getType()->getDerived();
-    else if (auto ptr = std::dynamic_pointer_cast<BstIdl::FType>(obj))
-        type = ptr;
 
     if (!type)
     {

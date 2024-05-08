@@ -22,7 +22,6 @@
 #include "SomeipInterfacePropertyAccessor.h"
 #include "SomeipProviderPropertyAccessor.h"
 #include "SomeipTypeCollectionPropertyAccessor.h"
-#include "VSomeipPropertyAccessor.h"
 #include "capicxx-core-tools/CommonapiPropertyAccessor.h"
 #include <functional>
 
@@ -574,133 +573,107 @@ public:
         return provider_method(&SomeipProviderPropertyAccessor::getSomeIpMulticastPorts, obj, ret);
     }
 
-    // vsomeip
-    bool getSomeIpConfigGenEnable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
-    {
-        return someipProvider_ ? someipProvider_->getSomeIpConfigGenEnable(obj, isOK) : isOK = false;
-    }
+    // int getSomeIpAttrArrayMinLength(const std::shared_ptr<BstIdl::FAttribute> &obj);
 
-    std::string getSomeIpClientHostUnicast(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::string ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpClientHostUnicast, obj, ret);
-    }
-    std::string getSomeIpServerHostUnicast(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::string ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServerHostUnicast, obj, ret);
-    }
-    // logging
-    std::string getSomeIpLoggingLevel(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::string ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpLoggingLevel, obj, ret);
-    }
-    bool getSomeIpLoggingViaConsole(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
-    {
-        return someipProvider_ ? someipProvider_->getSomeIpLoggingViaConsole(obj, isOK) : isOK = false;
-    }
-    bool getSomeIpCreateLogFile(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
-    {
-        return someipProvider_ ? someipProvider_->getSomeIpCreateLogFile(obj, isOK) : isOK = false;
-    }
-    std::string getSomeIpLogFileAbsPath(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::string ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpLogFileAbsPath, obj, ret);
-    }
-    bool getSomeIpLoggingDLT(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
-    {
-        return someipProvider_ ? someipProvider_->getSomeIpLoggingDLT(obj, isOK) : isOK = false;
-    }
-    bool getSomeIpVersionCyclicLogEable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
-    {
-        return someipProvider_ ? someipProvider_->getSomeIpVersionCyclicLogEable(obj, isOK) : isOK = false;
-    }
-    int getSomeIpVersionLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpVersionLogInterval, obj, ret);
-    }
-    int getSomeIpMemoryLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpMemoryLogInterval, obj, ret);
-    }
-    int getSomeIpStatusLogInterval(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpStatusLogInterval, obj, ret);
-    }
-    // applications
-    std::list<std::string> getSomeIpApplicationNames(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::list<std::string> ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpApplicationNames, obj, ret);
-    }
-    std::list<std::string> getSomeIpApplicationIDs(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::list<std::string> ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpApplicationIDs, obj, ret);
-    }
-    // service-discovery
-    bool getSomeIpServiceDiscoveryEnable(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj, bool &isOK)
-    {
-        return someipProvider_ ? someipProvider_->getSomeIpServiceDiscoveryEnable(obj, isOK) : isOK = false;
-    }
-    std::string getSomeIpServiceDiscoveryMulticastAddress(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::string ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryMulticastAddress, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryPort(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryPort, obj, ret);
-    }
+    // int getSomeIpAttrArrayMaxLength(const std::shared_ptr<BstIdl::FAttribute> &obj);
 
-    std::string getSomeIpServiceDiscoveryProtocol(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        std::string ret;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryProtocol, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryInitialDelayMin(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryInitialDelayMin, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryInitialDelayMax(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryInitialDelayMax, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryRepetitionsBaseDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryRepetitionsBaseDelay, obj,
-                               ret);
-    }
-    int getSomeIpServiceDiscoveryRepetitionsMax(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryRepetitionsMax, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryttl(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryttl, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryCyclicOfferDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryCyclicOfferDelay, obj, ret);
-    }
-    int getSomeIpServiceDiscoveryRequestResponseDelay(const std::shared_ptr<BstIdl::FDExtensionRoot> &obj)
-    {
-        int ret = -1;
-        return provider_method(&SomeipProviderPropertyAccessor::getSomeIpServiceDiscoveryRequestResponseDelay, obj,
-                               ret);
-    }
+    // int getSomeIpAttrArrayLengthWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrStructLengthWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrUnionLengthWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrUnionDefaultOrder(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrUnionTypeWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrUnionMaxLength(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrEnumBitWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrEnumWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpAttrIntegerBitWidth(const std::shared_ptr<BstIdl::FAttribute> &obj);
+
+    // int getSomeIpArgArrayMinLength(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgArrayMaxLength(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgArrayLengthWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgStructLengthWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgUnionLengthWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgUnionTypeWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgUnionMaxLength(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgEnumBitWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgUnionDefaultOrder(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgEnumWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgIntegerBitWidth(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpArgIntegerInvalidValue(const std::shared_ptr<BstIdl::FArgument> &obj);
+
+    // int getSomeIpStructArrayMinLength(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructArrayMaxLength(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructArrayLengthWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructStructLengthWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructUnionLengthWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructUnionTypeWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructUnionDefaultOrder(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructUnionMaxLength(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructEnumBitWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructEnumWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructIntegerBitWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpStructIntegerInvalidValue(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpUnionArrayMinLength(const std::shared_ptr<BstIdl::FObject> &obj);
+
+    // int getSomeIpUnionArrayMaxLength(const std::shared_ptr<BstIdl::FObject> &obj);
+
+    // int getSomeIpUnionArrayLengthWidth(const std::shared_ptr<BstIdl::FObject> &obj);
+
+    // int getSomeIpUnionStructLengthWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpUnionIntegerBitWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpUnionEnumBitWidth(const std::shared_ptr<BstIdl::FField> &obj);
+
+    // int getSomeIpUnionUnionLengthWidth(const std::shared_ptr<BstIdl::FObject> &obj);
+
+    // int getSomeIpUnionUnionTypeWidth(const std::shared_ptr<BstIdl::FObject> &obj);
+
+    // int getSomeIpUnionUnionDefaultOrder(const std::shared_ptr<BstIdl::FObject> &obj);
+
+    // int getSomeIpUnionUnionMaxLength(const std::shared_ptr<BstIdl::FObject> &obj);
+    // int getSomeIpUnionEnumWidth(const std::shared_ptr<BstIdl::FObject> &obj);
+    // int getSomeIpArrayMaxLength(const std::shared_ptr<BstIdl::FObject> &obj);
+    // std::string getDeploymentType(const std::shared_ptr<BstIdl::FTypeDef> &_typeDef, const
+    // std::shared_ptr<BstIdl::FTypeCollection> &_interface, bool _useTc); std::string getDeploymentType(const
+    // std::shared_ptr<BstIdl::FTypedElement> &_typedElement, const std::shared_ptr<BstIdl::FTypeCollection>
+    // &_interface, bool _useTc); std::string getDeploymentType(const std::shared_ptr<BstIdl::FTypeRef> &_typeRef, const
+    // std::shared_ptr<BstIdl::FTypeCollection> &_interface, bool _useTc); std::string getDeploymentType(const
+    // std::shared_ptr<BstIdl::FBasicTypeId> &_type, const std::shared_ptr<BstIdl::FTypeCollection> &_interface, bool
+    // _useTc); std::string getDeploymentType(const std::shared_ptr<BstIdl::FType> &_type, const
+    // std::shared_ptr<BstIdl::FTypeCollection> &_interface, bool _useTc); std::shared_ptr<SomeipPropertyAccessor>
+    // getOverwriteAccessor(const std::shared_ptr<BstIdl::FObject> &obj); int getTimeout(const
+    // std::shared_ptr<BstIdl::FMethod> &obj);
 };
 } // namespace BstCommonAPI
 #endif

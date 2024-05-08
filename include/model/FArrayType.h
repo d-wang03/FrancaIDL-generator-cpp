@@ -25,6 +25,7 @@ class FStructType;
 class FUnionType;
 class FEnumerationType;
 class FEvaluableElement;
+class FExpression;
 class FArrayType : public FType
 {
 public:
@@ -42,6 +43,30 @@ public:
     void setElementType(const std::shared_ptr<FTypeRef> &value)
     {
         m_elementType = value;
+    }
+
+    bool isFixedSize() const
+    {
+        return m_isFixedSize;
+    }
+
+    std::shared_ptr<FExpression> getFixedSize() const
+    {
+        return m_fixedSize;
+    }
+
+    void setFixedSize(const std::shared_ptr<FExpression> &size)
+    {
+        if (size)
+        {
+            m_isFixedSize = true;
+            m_fixedSize = size;
+        }
+        else
+        {
+            m_isFixedSize = false;
+            m_fixedSize = nullptr;
+        }
     }
 
     std::string transform(std::string func) override
@@ -63,6 +88,8 @@ public:
 
 protected:
     std::shared_ptr<FTypeRef> m_elementType;
+    bool m_isFixedSize;
+    std::shared_ptr<FExpression> m_fixedSize;
 };
 
 } // namespace BstIdl

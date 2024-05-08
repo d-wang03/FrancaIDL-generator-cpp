@@ -892,6 +892,15 @@ argument
     $$->setArray(true);
     $$->setName($5);
 }
+| annotationBlock typeRef "[" logicalOrExpression "]" ID
+{
+    $$ = FFactory::getInstance().createFArgument();
+    $$->setComment($1);
+    $$->setType($2);
+    $$->setArray(true);
+    $$->setFixedSize($4);
+    $$->setName($6);
+}
 | annotationBlock typeRef ID
 {
     $$ = FFactory::getInstance().createFArgument();
@@ -905,6 +914,14 @@ argument
     $$->setType($1);
     $$->setArray(true);
     $$->setName($4);
+}
+| typeRef "[" logicalOrExpression "]" ID
+{
+    $$ = FFactory::getInstance().createFArgument();
+    $$->setType($1);
+    $$->setArray(true);
+    $$->setFixedSize($3);
+    $$->setName($5);
 }
 | typeRef ID
 {
@@ -1047,6 +1064,23 @@ arrayType: annotationBlock "public" "array" ID "of" typeRef
     auto arrayType = FFactory::getInstance().createFArrayType();
     arrayType->setName($2);
     arrayType->setElementType($4);
+    $$ = arrayType;
+}
+| annotationBlock "array" ID "of" typeRef "(" logicalOrExpression ")"
+{
+    auto arrayType = FFactory::getInstance().createFArrayType();
+    arrayType->setComment($1);
+    arrayType->setName($3);
+    arrayType->setElementType($5);
+    arrayType->setFixedSize($7);
+    $$ = arrayType;
+}
+| "array" ID "of" typeRef "(" logicalOrExpression ")"
+{
+    auto arrayType = FFactory::getInstance().createFArrayType();
+    arrayType->setName($2);
+    arrayType->setElementType($4);
+    arrayType->setFixedSize($6);
     $$ = arrayType;
 }
 ;
@@ -1389,6 +1423,15 @@ field
     $$->setArray(true);
     $$->setName($5);
 }
+| annotationBlock typeRef "[" logicalOrExpression "]" ID
+{
+    $$ = FFactory::getInstance().createFField();
+    $$->setComment($1);
+    $$->setType($2);
+    $$->setArray(true);
+    $$->setFixedSize($4);
+    $$->setName($6);
+}
 | annotationBlock typeRef ID
 {
     $$ = FFactory::getInstance().createFField();
@@ -1402,6 +1445,14 @@ field
     $$->setType($1);
     $$->setArray(true);
     $$->setName($4);
+}
+| typeRef "[" logicalOrExpression "]" ID
+{
+    $$ = FFactory::getInstance().createFField();
+    $$->setType($1);
+    $$->setArray(true);
+    $$->setFixedSize($3);
+    $$->setName($5);
 }
 | typeRef ID
 {
