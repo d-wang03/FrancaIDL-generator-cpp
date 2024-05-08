@@ -2308,12 +2308,12 @@ std::string FrancaSomeIPGeneratorExtensions::isReliable(const std::shared_ptr<Bs
 {
     auto value = _accessor->getSomeIpReliable(_broadcast);
     if (value != -1)
+    {
         if (value == 0)
             return "false";
         else
-        {
             return "true";
-        }
+    }
     return "false";
 }
 
@@ -2322,12 +2322,12 @@ std::string FrancaSomeIPGeneratorExtensions::isReliable(const std::shared_ptr<Bs
 {
     auto value = _accessor->getSomeIpReliable(_method);
     if (value != -1)
+    {
         if (value == 0)
             return "false";
         else
-        {
             return "true";
-        }
+    }
     return "false";
 }
 
@@ -2360,11 +2360,13 @@ std::string FrancaSomeIPGeneratorExtensions::getErrorDeploymentType(const std::s
         if (_method->getErrorEnum())
             deploymentType = getDeploymentType(_method->getErrorEnum(), gen.getContainingInterface(_method), true);
         if (_method->getErrors())
+        {
             if (_method->getErrors()->getBase())
                 deploymentType =
                     getDeploymentType(_method->getErrors()->getBase(), gen.getContainingInterface(_method), true);
             else
                 deploymentType = "CommonAPI::EmptyDeployment";
+        }
         if (_isArgument && !_method->getOutArgs().empty())
             deploymentType = deploymentType + ", ";
     }
@@ -2602,311 +2604,4 @@ std::string FrancaSomeIPGeneratorExtensions::getDeploymentType(
 
     return deploymentType;
 }
-
-// vsomeip extensions
-std::string FrancaSomeIPGeneratorExtensions::getServerHostMessage(
-    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    if (!_provider || !_accessor)
-        return std::string();
-    else
-        return std::string("\n\t\"unicast\": \"" + _accessor->getSomeIpServerHostUnicast(_provider) + "\"");
-}
-
-std::string FrancaSomeIPGeneratorExtensions::getClientHostMessage(
-    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    if (!_provider || !_accessor)
-        return std::string();
-    else
-        return std::string("\n\t\"unicast\": \"" + _accessor->getSomeIpClientHostUnicast(_provider) + "\"");
-}
-
-std::string FrancaSomeIPGeneratorExtensions::getLogging(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
-                                                        const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    if (!_provider || !_accessor)
-        return std::string();
-
-    std::string logging("");
-    auto level = _accessor->getSomeIpLoggingLevel(_provider);
-    if (level.empty())
-        return logging;
-    std::list<std::string> content;
-    content.emplace_back("\n\t\t\"level\" : \"" + level + "\"");
-    bool isOK;
-    auto consoleEnable =
-        _accessor->getSomeIpLoggingViaConsole(_provider, isOK) ? std::string("true") : std::string("false");
-    if (isOK)
-        content.emplace_back("\n\t\t\"consolve\" : \"" + consoleEnable + "\"");
-    auto logFileEnable =
-        _accessor->getSomeIpCreateLogFile(_provider, isOK) ? std::string("true") : std::string("false");
-    if (isOK)
-    {
-        auto logFileAbsPath = _accessor->getSomeIpLogFileAbsPath(_provider);
-        content.emplace_back("\n\t\t\"file\" : { \"enable\" : \"" + logFileEnable + "\", \"path\" : \"" +
-                             logFileAbsPath + "\" }");
-    }
-    auto diagnoseAndTraceEnable =
-        _accessor->getSomeIpLoggingDLT(_provider, isOK) ? std::string("true") : std::string("false");
-    if (isOK)
-        content.emplace_back("\n\t\t\"dlt\" : \"" + diagnoseAndTraceEnable + "\"");
-    auto versionCyclicLogEable =
-        _accessor->getSomeIpVersionCyclicLogEable(_provider, isOK) ? std::string("true") : std::string("false");
-    auto versionLogInterval = _accessor->getSomeIpVersionLogInterval(_provider);
-    content.emplace_back("\n\t\t\"version\" : {\"enable\" : " + versionCyclicLogEable + ", \"interval\" : \"" +
-                         std::to_string(versionLogInterval) + "\"}");
-    auto memoryLogInterval = _accessor->getSomeIpMemoryLogInterval(_provider);
-    auto statusLogInterval = _accessor->getSomeIpStatusLogInterval(_provider);
-    if (memoryLogInterval > 0)
-        content.emplace_back("\n\t\t\"memory_log_interval\" : \"" + std::to_string(memoryLogInterval) + "\"");
-    if (statusLogInterval > 0)
-        content.emplace_back("\n\t\t\"status_log_interval\" : \"" + std::to_string(statusLogInterval) + "\"");
-
-    logging.append("\n\t\"logging\" : \n\t{" + join(content, ",") + "\n\t}");
-    return logging;
-}
-
-std::string FrancaSomeIPGeneratorExtensions::getServiceDiscovery(
-    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    if (!_provider || !_accessor)
-        return std::string();
-
-    bool isOK;
-    auto sd_enable = _accessor->getSomeIpServiceDiscoveryEnable(_provider, isOK);
-    if (!isOK)
-        return std::string();
-    if (!sd_enable)
-        return std::string("\n\t\"service-discovery\" : \n\t{\n\t\t\"enable\" : \"false\"\n\t}");
-    auto multicast = _accessor->getSomeIpServiceDiscoveryMulticastAddress(_provider);
-    auto port = _accessor->getSomeIpServiceDiscoveryPort(_provider);
-    auto protocol = _accessor->getSomeIpServiceDiscoveryProtocol(_provider);
-    auto initial_delay_min = _accessor->getSomeIpServiceDiscoveryInitialDelayMin(_provider);
-    auto initial_delay_max = _accessor->getSomeIpServiceDiscoveryInitialDelayMax(_provider);
-    auto repetitions_base_delay = _accessor->getSomeIpServiceDiscoveryRepetitionsBaseDelay(_provider);
-    auto repetitions_max = _accessor->getSomeIpServiceDiscoveryRepetitionsMax(_provider);
-    auto ttl = _accessor->getSomeIpServiceDiscoveryttl(_provider);
-    auto cyclic_offer_delay = _accessor->getSomeIpServiceDiscoveryCyclicOfferDelay(_provider);
-    auto request_response_delay = _accessor->getSomeIpServiceDiscoveryRequestResponseDelay(_provider);
-
-    std::list<std::string> content;
-    content.emplace_back("\n\t\t\"enable\" : \"false\"");
-    content.emplace_back("\n\t\t\"multicast\" : \"" + multicast + "\"");
-    content.emplace_back("\n\t\t\"port\" : \"" + std::to_string(port) + "\"");
-    content.emplace_back("\n\t\t\"protocol\" : \"" + protocol + "\"");
-    content.emplace_back("\n\t\t\"initial_delay_min\" : \"" + std::to_string(initial_delay_min) + "\"");
-    content.emplace_back("\n\t\t\"initial_delay_max\" : \"" + std::to_string(initial_delay_max) + "\"");
-    content.emplace_back("\n\t\t\"repetitions_base_delay\" : \"" + std::to_string(repetitions_base_delay) + "\"");
-    content.emplace_back("\n\t\t\"repetitions_max\" : \"" + std::to_string(repetitions_max) + "\"");
-    content.emplace_back("\n\t\t\"ttl\" : \"" + std::to_string(ttl) + "\"");
-    content.emplace_back("\n\t\t\"cyclic_offer_delay\" : \"" + std::to_string(cyclic_offer_delay) + "\"");
-    content.emplace_back("\n\t\t\"request_response_delay\" : \"" + std::to_string(request_response_delay) + "\"");
-    std::string service_discovery("\n\t\"service-discovery\" : \n\t{" + join(content, ",") + "\n\t}");
-    return service_discovery;
-}
-
-std::string FrancaSomeIPGeneratorExtensions::getApplications(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
-                                                             const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    if (!_provider || !_accessor)
-        return std::string();
-    auto appList = getApplication(_provider, _accessor);
-    std::string applications("\n\t\"applications\" : \n\t[" + join(appList, ",") + "\n\t]");
-    return applications;
-}
-
-std::list<std::string> FrancaSomeIPGeneratorExtensions::getApplication(
-    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::list<std::string> apps;
-    if (!_provider || !_accessor)
-        return apps;
-    auto names = _accessor->getSomeIpApplicationNames(_provider);
-    auto ids = _accessor->getSomeIpApplicationIDs(_provider);
-    if (ids.size() != names.size() || ids.empty())
-        return apps;
-
-    while (!names.empty() && !ids.empty())
-    {
-        auto name = names.front();
-        auto id = ids.front();
-        names.pop_front();
-        ids.pop_front();
-        std::string content("");
-        content.append("\n\t\t\t\"name\" : \"" + name + "\",");
-        content.append("\n\t\t\t\"id\" : \"" + id + "\"");
-        apps.emplace_back("\n\t\t{" + content + "\n\t\t}");
-    }
-    return apps;
-}
-// vsomeip services
-std::string FrancaSomeIPGeneratorExtensions::getServices(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
-                                                         const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    if (!_provider || !_accessor)
-        return std::string();
-    auto serviceList = getService(_provider, _accessor);
-    std::string services("\n\t\"services\" : \n\t[" + join(serviceList, ",") + "\n\t]");
-    return services;
-}
-std::list<std::string> FrancaSomeIPGeneratorExtensions::getService(
-    const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::list<std::string> serviceList;
-    if (!_provider || !_accessor)
-        return serviceList;
-
-    for (const auto &ins : _provider->getInstances())
-    {
-        if (!ins)
-            continue;
-        std::list<std::string> content;
-        auto fInterface = std::dynamic_pointer_cast<BstIdl::FInterface>(ins->getTarget());
-        auto inf_accessor = getSomeIpAccessor(fInterface);
-        auto service = inf_accessor->getSomeIpServiceID(fInterface);
-        auto instance = _accessor->getSomeIpInstanceID(ins);
-        auto reliable = _accessor->getSomeIpReliableUnicastPort(ins);
-        auto unreliable = _accessor->getSomeIpUnreliableUnicastPort(ins);
-        auto events = getEvents(ins, inf_accessor);
-        auto eventgroups = getEventGroups(ins, inf_accessor);
-
-        content.emplace_back("\n\t\t\t\"service\" : \"" + std::to_string(service) + "\"");
-        content.emplace_back("\n\t\t\t\"instance\" : \"" + std::to_string(instance) + "\"");
-        content.emplace_back("\n\t\t\t\"reliable\" : \"" + std::to_string(reliable) + "\"");
-        content.emplace_back("\n\t\t\t\"unreliable\" : \"" + std::to_string(unreliable) + "\"");
-        if (!events.empty())
-            content.emplace_back(events);
-        if (!eventgroups.empty())
-            content.emplace_back(eventgroups);
-        serviceList.emplace_back("\n\t\t{" + join(content, ",") + "\n\t\t}");
-    }
-
-    return serviceList;
-}
-std::string FrancaSomeIPGeneratorExtensions::getEvents(const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
-                                                       const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::string events("\n\t\t\t\"events\" : ");
-    auto eventList = getEvent(_instance, _accessor);
-    if (eventList.empty())
-        return std::string();
-    events.append("\n\t\t\t[" + join(eventList, ",") + "\n\t\t\t]");
-    return events;
-}
-std::list<std::string> FrancaSomeIPGeneratorExtensions::getEvent(
-    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
-    const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::list<std::string> eventList;
-    auto fInterface = std::dynamic_pointer_cast<BstIdl::FInterface>(_instance->getTarget());
-
-    for (const auto &bc : fInterface->getBroadcasts())
-    {
-        auto event_id = getEventID(bc, _accessor);
-        std::string event("\n\t\t\t\t{\n\t\t\t\t\t\"event\" : \"" + event_id + "\",");
-        event.append("\n\t\t\t\t\t\"is_field\" : \"false\",");
-        event.append("\n\t\t\t\t\t\"is_reliable\" : \"" + isReliable(bc, _accessor) + "\"\n\t\t\t\t}");
-        eventList.emplace_back(event);
-    }
-    for (const auto &attr : fInterface->getAttributes())
-    {
-        auto event_id = getNotifierID(attr, _accessor);
-        std::string event("\n\t\t\t\t{\n\t\t\t\t\t\"event\" : \"" + event_id + "\",");
-        event.append("\n\t\t\t\t\t\"is_field\" : \"true\",");
-        event.append("\n\t\t\t\t\t\"is_reliable\" : \"" + isNotifierReliable(attr, _accessor) + "\"\n\t\t\t\t}");
-        eventList.emplace_back(event);
-    }
-    return eventList;
-}
-std::string FrancaSomeIPGeneratorExtensions::getEventGroups(
-    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
-    const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::string eventgroups("\n\t\t\t\"eventgroups\" : ");
-    auto eventgroupList = getEventGroup(_instance, _accessor);
-    if (eventgroupList.empty())
-        return std::string();
-    eventgroups.append("\n\t\t\t[" + join(eventgroupList, ",") + "\n\t\t\t]");
-    return eventgroups;
-}
-std::list<std::string> FrancaSomeIPGeneratorExtensions::getEventGroup(
-    const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
-    const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::list<std::string> eventgroups;
-    auto fInterface = std::dynamic_pointer_cast<BstIdl::FInterface>(_instance->getTarget());
-
-    for (const auto &bc : fInterface->getBroadcasts())
-    {
-        auto events_id = getEventID(bc, _accessor);
-        for (const auto &id : getEventGroupsID(bc, _accessor))
-        {
-            std::string eventgroup("\n\t\t\t\t{\n\t\t\t\t\t\"eventgroup\" : \"" + id + "\",");
-            eventgroup.append("\n\t\t\t\t\t\"events\" : [\"" + events_id + "\"]\n\t\t\t\t}");
-            eventgroups.emplace_back(eventgroup);
-        }
-    }
-    for (const auto &attr : fInterface->getAttributes())
-    {
-        auto events_id = getNotifierID(attr, _accessor);
-        for (const auto &id : getNotifierEventGroupsID(attr, _accessor))
-        {
-            std::string eventgroup("\n\t\t\t\t{\n\t\t\t\t\t\"eventgroup\" : \"" + id + "\",");
-            eventgroup.append("\n\t\t\t\t\t\"events\" : [\"" + events_id + "\"]\n\t\t\t\t}");
-            eventgroups.emplace_back(eventgroup);
-        }
-    }
-
-    return eventgroups;
-}
-
-std::string FrancaSomeIPGeneratorExtensions::getEventID(const std::shared_ptr<BstIdl::FBroadcast> &_broadcast,
-                                                        const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    int value = _accessor->getSomeIpEventID(_broadcast);
-    if (value != -1)
-    {
-        return std::to_string(value);
-    }
-    return "UNDEFINED_EVENT_ID";
-}
-
-std::string FrancaSomeIPGeneratorExtensions::getNotifierID(const std::shared_ptr<BstIdl::FAttribute> &_attribute,
-                                                           const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    auto value = _accessor->getSomeIpNotifierID(_attribute);
-    if (value != -1)
-    {
-        return std::to_string(value);
-    }
-    return "UNDEFINED_NOTIFIER_ID";
-}
-
-std::list<std::string> FrancaSomeIPGeneratorExtensions::getEventGroupsID(
-    const std::shared_ptr<BstIdl::FBroadcast> &_broadcast, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::list<std::string> strs;
-    std::list<int> value = _accessor->getSomeIpEventGroups(_broadcast);
-    if (!value.empty())
-    {
-        for (const auto &it : value)
-        {
-            strs.emplace_back(std::to_string(it));
-        }
-    }
-    return strs;
-}
-
-std::list<std::string> FrancaSomeIPGeneratorExtensions::getNotifierEventGroupsID(
-    const std::shared_ptr<BstIdl::FAttribute> &_attribute, const std::shared_ptr<SomeipPropertyAccessor> &_accessor)
-{
-    std::list<std::string> strs;
-    std::list<int> value = _accessor->getSomeIpEventGroups(_attribute);
-    if (!value.empty())
-        for (const auto &it : value)
-            strs.emplace_back(std::to_string(it));
-    return strs;
-}
-
 } // namespace BstCommonAPI

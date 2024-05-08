@@ -20,7 +20,6 @@
 #include "FArgument.h"
 #include "FEnumerationType.h"
 #include "FTypedElement.h"
-#include "FireAndForgetLimits.h"
 #include <list>
 #include <memory>
 
@@ -36,6 +35,13 @@ public:
     FMethod &operator=(const FMethod &) = default;
     FMethod &operator=(FMethod &&) = default;
 
+    std::string getName() const override
+    {
+        if (getSelector().empty())
+            return m_name;
+        else
+            return m_name + ":" + getSelector();
+    }
     std::string getFQN() const override
     {
         if (getSelector().empty())
@@ -44,12 +50,9 @@ public:
             return getContainer() ? (getContainer()->getFQN() + "." + getName() + ":" + m_selector)
                                   : getName() + ":" + m_selector;
     }
-
     bool isFireAndForget() const
     {
-        auto inf = std::dynamic_pointer_cast<BstIdl::FInterface>(this->getContainer());
-        auto notAsfInf = !FireAndForgetLimits::getInstance().isAsfInterface(inf);
-        return m_isFireAndForget && notAsfInf;
+        return m_isFireAndForget;
     }
     void setFireAndForget(bool value)
     {
@@ -83,7 +86,18 @@ public:
     {
         return m_errors ? m_errors : m_errorEnum;
     }
-
+    std::shared_ptr<FArgument> getErrorArg()
+    {
+        if (!m_errArg)
+        {
+            m_errArg = std::make_shared<FArgument>();
+            m_errArg->setName("err");
+            auto typeref = std::make_shared<FTypeRef>();
+            typeref->setDerived(getErrorType());
+            m_errArg->setType(typeref);
+        }
+        return m_errArg;
+    }
     std::string getSelector() const
     {
         return m_selector;
@@ -115,6 +129,7 @@ protected:
     std::list<std::shared_ptr<FArgument>> m_outArgs;
     std::shared_ptr<FEnumerationType> m_errorEnum;
     std::shared_ptr<FEnumerationType> m_errors;
+    std::shared_ptr<FArgument> m_errArg;
     std::string m_selector;
     std::shared_ptr<FAnnotationBlock> m_errorComment;
 };

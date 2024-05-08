@@ -21,7 +21,7 @@
 
 namespace BstIdl
 {
-
+class FExpression;
 class FTypedElement : public FEvaluableElement
 {
 public:
@@ -48,6 +48,27 @@ public:
     {
         m_isArray = value;
     }
+    bool isFixedSize() const
+    {
+        return m_isFixedSize;
+    }
+    std::shared_ptr<FExpression> getFixedSize() const
+    {
+        return m_fixedSize;
+    }
+    void setFixedSize(const std::shared_ptr<FExpression> &size)
+    {
+        if (size)
+        {
+            m_isFixedSize = true;
+            m_fixedSize = size;
+        }
+        else
+        {
+            m_isFixedSize = false;
+            m_fixedSize = nullptr;
+        }
+    }
     std::string toString() const
     {
         return m_isArray ? m_typeRef->toString() + "[]" : m_typeRef->toString();
@@ -56,6 +77,8 @@ public:
 protected:
     std::shared_ptr<FTypeRef> m_typeRef;
     bool m_isArray;
+    bool m_isFixedSize;
+    std::shared_ptr<FExpression> m_fixedSize;
 };
 
 } // namespace BstIdl

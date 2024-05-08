@@ -203,6 +203,8 @@ std::string FrancaGeneratorExtensions::getStubDefaultHeaderFile(const std::share
 
 std::string FrancaGeneratorExtensions::getSkeletonNamePostfix()
 {
+    // return FPreferences::getInstance().getPreference(PreferenceConstants::getInstance().P_SKELETONPOSTFIX,
+    // "Default");
     return "";
 }
 
@@ -526,6 +528,7 @@ std::shared_ptr<BstIdl::FBasicTypeId> FrancaGeneratorExtensions::getBackingType(
 
 std::string FrancaGeneratorExtensions::getEnumPrefix()
 {
+    // return FPreferences::getInstance().getPreference(PreferenceConstants::getInstance().P_ENUMPREFIX, "");
     return "";
 }
 
@@ -2594,7 +2597,7 @@ std::string FrancaGeneratorExtensions::generateDummyArgumentInitialization(
     case BstIdl::FBasicTypeId::INT16:
         return " = 0";
     case BstIdl::FBasicTypeId::UINT16:
-        " = 0u";
+        return " = 0u";
     case BstIdl::FBasicTypeId::INT32:
         return " = 0";
     case BstIdl::FBasicTypeId::UINT32:

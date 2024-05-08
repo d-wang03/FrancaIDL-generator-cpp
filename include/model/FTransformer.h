@@ -44,8 +44,9 @@ class FVariable;
 class FTypeElement;
 class FBasicTypeId;
 
-struct FTransformer
+class FTransformer
 {
+public:
     std::function<std::string(FArrayType *)> forFArrayType;
     std::function<std::string(FAttribute *)> forFAttribute;
     std::function<std::string(FArgument *)> forFArgument;

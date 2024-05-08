@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 #include "model/FQualifiedElementRef.h"
+#include "model/FCompoundInitializer.h"
 #include "model/FConstantDef.h"
 #include "model/FStructType.h"
 #include "model/FTypeDef.h"
 #include "model/FTypeRef.h"
 #include "model/FUnionType.h"
+#include "utilities/string_utility.h"
 #include <algorithm>
 
 namespace BstIdl
@@ -79,15 +81,24 @@ void FQualifiedElementRef::validate(std::shared_ptr<FTypeRef> &type, bool isArra
 void FQualifiedElementRef::EvaluableValidate(std::shared_ptr<FTypeRef> &type, bool isArray, std::string &value,
                                              bool is_init_exp)
 {
-    FExpression::EvaluableValidate(type, isArray, value, is_init_exp);
-    auto element = getElement();
-    auto constDef = std::dynamic_pointer_cast<FConstantDef>(element);
-    if (constDef != nullptr)
+    std::list<std::string> splitted_fqn;
+    auto constDef = std::dynamic_pointer_cast<FConstantDef>(getElement());
+    if (constDef)
     {
-        auto real_exp = constDef->getRhs();
-        real_exp->EvaluableValidate(type, isArray, value, is_init_exp);
+        constDef->getRhs()->EvaluableValidate(type, isArray, value, is_init_exp);
+    }
+    else
+    {
+        auto constDef = std::dynamic_pointer_cast<FConstantDef>(getQerElementAndFQN(splitted_fqn));
+        type = getFieldType(splitted_fqn, constDef);
+        auto real_exp = getFieldExpression(splitted_fqn, constDef);
+        if (type && real_exp)
+            real_exp->EvaluableValidate(type, isArray, value, is_init_exp);
+        else
+            throw initializer_error("QualifiedElementRef:qualified element is null.");
     }
 }
+
 bool FQualifiedElementRef::isTypeMatch(const std::shared_ptr<FTypeRef> &src, const std::shared_ptr<FTypeRef> &dst)
 {
     auto srcPredefined = src->getPredefined();
@@ -129,6 +140,7 @@ bool FQualifiedElementRef::isTypeMatch(const std::shared_ptr<FTypeRef> &src, con
         return true;
     return false;
 }
+
 std::shared_ptr<FTypeRef> FQualifiedElementRef::getRealType(const std::shared_ptr<FTypeRef> &src)
 {
     auto realType = src;
@@ -147,5 +159,50 @@ std::shared_ptr<FTypeRef> FQualifiedElementRef::getRealType(const std::shared_pt
     }
     else
         return realType;
+}
+
+std::shared_ptr<FEvaluableElement> FQualifiedElementRef::getQerElementAndFQN(std::list<std::string> &splittedFqn)
+{
+    std::shared_ptr<FQualifiedElementRef> qer = shared_from_this();
+    while (qer->getField())
+    {
+        splittedFqn.emplace_front(qer->getField()->getName());
+        qer = qer->getQualifier();
+    }
+    return qer->getElement();
+}
+
+std::shared_ptr<FTypeRef> FQualifiedElementRef::getFieldType(const std::list<std::string> &_splitted_fqn,
+                                                             std::shared_ptr<FConstantDef> &constDef)
+{
+    if (!constDef || !constDef->getType() || !constDef->getType()->getDerived() || _splitted_fqn.empty())
+        return nullptr;
+
+    // find field defination of constant's type
+    auto fqn = _splitted_fqn;
+    std::shared_ptr<FTypeRef> field_type = nullptr;
+    auto field = std::dynamic_pointer_cast<FField>(constDef->getType()->getDerived()->findElement(fqn));
+    if (field) // && field->getFQN().compare(constDef->getType()->getFQN() + '.' + join(_splitted_fqn, ".")) == 0)
+    {
+        field_type = field->getType();
+    }
+    return field_type;
+}
+
+std::shared_ptr<FInitializerExpression> FQualifiedElementRef::getFieldExpression(
+    const std::list<std::string> &_splitted_fqn, std::shared_ptr<FConstantDef> &constDef)
+{
+    if (!constDef || !constDef->getRhs() || _splitted_fqn.empty())
+        return nullptr;
+    // constantdef find fieldInitializer by field fqn
+    std::shared_ptr<FInitializerExpression> init = constDef->getRhs();
+    std::list<std::string> splittedFqn = _splitted_fqn;
+    // find field initializer in compoundInitializer
+    while (!splittedFqn.empty() && std::dynamic_pointer_cast<FCompoundInitializer>(init))
+    {
+        init = std::dynamic_pointer_cast<FCompoundInitializer>(init)->findElement(splittedFqn.front())->getValue();
+        splittedFqn.pop_front();
+    }
+    return init;
 }
 } // namespace BstIdl

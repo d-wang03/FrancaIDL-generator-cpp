@@ -41,6 +41,12 @@ public:
     {
         m_element = value;
     }
+    std::string getElementName() const
+    {
+        if (m_element)
+            return m_element->getName();
+        return std::string();
+    }
     std::shared_ptr<FInitializerExpression> getValue() const
     {
         return m_value;

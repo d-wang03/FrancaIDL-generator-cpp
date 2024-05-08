@@ -1,0 +1,47 @@
+package com.bst.idl.testRefMgr.model2
+import com.bst.idl.testRefMgr.model1.* from "../idlFile/RefMgrTc1.fidl"
+interface Test extends com.bst.idl.testRefMgr.model1.test2{/*
+    method Method1:a{
+        in {
+
+        }
+        out {
+
+        }
+        error CalcErrors
+    }
+    method Method1:b fireAndForget{
+        in{
+            Boolean check
+        }
+        error com.bst.idl.testRefMgr.model1.test2.Enum1
+    }*/
+    enumeration CalcErrors {
+        DIVISION BY ZERO
+        OVERFLOW
+        UNDERFLOW
+    }
+}
+interface test4 extends com.bst.idl.testRefMgr.model2.Test{
+    method Method2{
+        in{
+
+        }
+        out{
+
+        }
+        error extends com.bst.idl.testRefMgr.model1.test2.Enum1{}
+    }
+    broadcast selectiveTest selective{
+        out {  Boolean ifSelective 
+            String[] names     
+        }
+    }
+        
+}
+interface manageTest manages Test, test2, model2.test4{
+
+}
+interface manageTest2 manages test2{
+
+}

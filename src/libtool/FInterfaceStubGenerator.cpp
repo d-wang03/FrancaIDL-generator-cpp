@@ -15,6 +15,7 @@
  */
 #include "libtool/FInterfaceStubGenerator.h"
 #include "utilities/string_utility.h"
+#include <fstream>
 
 namespace BstIdl
 {

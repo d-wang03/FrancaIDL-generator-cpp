@@ -1,0 +1,69 @@
+
+package com.bst.os.idl.doctest
+
+<** @description : Sample IDL, showing how to use BST HTML File generator.
+    @author : Tong Liu **>
+typeCollection staffTypes {
+    version { major 4 minor 0 }
+
+	<** @description : An enumeration of staffs' grade. **>
+	enumeration Grade {
+		A_Grade
+		B_Grade
+		C_Grade
+        D_Grade
+        E_Grade
+        F_Grade
+	}
+
+	<** @description : An enumeration of staffs' MBTI. **>
+    enumeration MBTI {
+        ISTJ = 0
+        ISFJ = 1
+        INTJ = 2
+        INFJ = 3
+        ISTP = 4
+        ISFP = 5
+        INTP = 6
+        INFP = 7
+        ESTJ = 8
+        ESFJ = 9
+        ENTJ = 10
+        ENFJ = 11
+        ESTP = 12
+        ESFP = 13
+        ENTP = 14
+        ENFP = 15
+
+    }
+
+	<** @description : A struct of staffs' detailed information. **>
+    struct StaffInfor {
+        String lastName
+        String firstName
+        MBTI mbtiType
+        ByteBuffer email
+        ByteBuffer phoneCall
+    }
+
+	<** @description : A struct of staffs' status. **>
+    struct StaffStatus {
+        Boolean isOff     
+    }
+
+	<** @description : A struct of staffs' performance. **>
+    struct Performance {
+        UInt64 salary
+        Grade selfGrade
+        Grade averageGrade
+    }
+
+	<** @description : A struct of a staff. **>
+    struct Staff {
+        UInt64 id
+        StaffInfor infor
+        StaffStatus status
+        Performance perform
+    }
+
+}

@@ -1,0 +1,44 @@
+package com.bst.idl.testRefMgr.model2
+import com.bst.idl.testRefMgr.model1.* from "../idlFile/RefMgrTc1.fidl"
+interface Test {
+    /*
+    method Method1:a{
+        in {}
+        out {}
+        error Test.CalcErrors
+    }
+
+    method Method1:b fireAndForget {
+        in{
+            Boolean check
+        }
+    }
+*/
+    method Method2{
+        in{}
+        out{}
+        //error extends com.bst.idl.testRefMgr.model1.test2.Enum1{}
+        error com.bst.idl.testRefMgr.model2.Test.CalcErrors
+    }
+
+    method Method3{
+        in{}
+        out{}
+        error extends CalcErrors{}
+    }
+
+    method Method4{
+        in{}
+        out{}
+        error {
+            A
+            B
+            C               
+        }
+    }
+    enumeration CalcErrors {
+        DIVISION BY ZERO
+        OVERFLOW
+        UNDERFLOW
+    }
+}

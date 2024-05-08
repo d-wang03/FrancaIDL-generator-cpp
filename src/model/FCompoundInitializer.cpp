@@ -20,6 +20,15 @@
 
 namespace BstIdl
 {
+std::shared_ptr<FFieldInitializer> FCompoundInitializer::findElement(const std::string &_field_name) const
+{
+    auto iter = std::find_if(m_elements.cbegin(), m_elements.cend(),
+                             [&_field_name](auto ele) { return ele->getElementName() == _field_name; });
+    if (iter == m_elements.cend())
+        return nullptr;
+    return (*iter);
+}
+
 void FCompoundInitializer::validate(std::shared_ptr<FTypeRef> &type, bool isArray)
 {
     FInitializer::validate(type, isArray);
@@ -74,6 +83,9 @@ void FCompoundInitializer::EvaluableValidate(std::shared_ptr<FTypeRef> &type, bo
                                              bool is_init_exp)
 {
     FInitializer::EvaluableValidate(type, isArray, value, is_init_exp);
+    if (isArray)
+        throw initializer_error("CompoundInitializer:Initilizer not match type.\nactual type: " +
+                                type->getDerived()->getName() + "[] expect  :  derived type");
     auto derived = type->getDerived();
     std::list<std::shared_ptr<FField>> elements;
     auto structType = std::dynamic_pointer_cast<FStructType>(derived);
@@ -87,14 +99,31 @@ void FCompoundInitializer::EvaluableValidate(std::shared_ptr<FTypeRef> &type, bo
         elements = unionType->getElements();
     }
 
-    for (const auto &item : m_elements) // struct elements
+    for (const auto &item : m_elements) // struct/union 's elements
     {
-        auto initilizer = item->getValue();
-        if (initilizer != nullptr)
-        {
-            auto tmp_value = item->getElement()->getType();
-            initilizer->EvaluableValidate(tmp_value, item->getElement()->isArray(), value, is_init_exp);
-        }
+        auto name = item->getElementName();
+        auto iter =
+            std::find_if(elements.cbegin(), elements.cend(), [name, &item, &value, &is_init_exp](const auto &element) {
+                if (element->getName() == name)
+                {
+                    auto initilizer = item->getValue();
+                    if (initilizer != nullptr)
+                    {
+                        auto tmp_type = element->getType();
+                        initilizer->EvaluableValidate(tmp_type, false, value, is_init_exp);
+                    }
+
+                    else
+                        throw initializer_error("CompoundInitializer : Field initilizer has null value.");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
+        if (iter == elements.cend())
+            throw initializer_error("CompoundInitializer : Initilizer not match type.");
     }
 }
 } // namespace BstIdl

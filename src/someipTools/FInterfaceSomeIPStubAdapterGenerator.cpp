@@ -22,6 +22,7 @@
 #include "someipTools/FrancaSomeIPGeneratorExtensions.h"
 #include "someipTools/SomeipPropertyAccessor.h"
 #include "utilities/string_utility.h"
+#include <fstream>
 #include <memory>
 
 namespace BstCommonAPI
@@ -250,7 +251,6 @@ std::string FInterfaceSomeIPStubAdapterGenerator::generateStubAdapterHeader(
               "&_connection,";
     header += "\n\t\tconst std::shared_ptr<CommonAPI::StubBase> &_stub):";
     header += "\n\t\tCommonAPI::SomeIP::StubAdapter(_address, _connection),";
-
     header += "\n\t\t" + someipStubAdapterHelperClassName(_interface) +
               "(\n\t\t\t_address,\n\t\t\t_connection, \n\t\t\t_stub),";
 

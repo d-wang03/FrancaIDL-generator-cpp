@@ -170,6 +170,13 @@ bool FTypeGenerator::hasImplementation(const std::shared_ptr<FType> &fType)
     return false;
 }
 
+bool FTypeGenerator::hasImplementation(const std::shared_ptr<BstIdl::FConstantDef> &fConst)
+{
+    if (fConst->getType() && fConst->getType()->getPredefined() && fConst->getType()->getPredefined()->getValue() <= 9)
+        return false;
+    return true;
+}
+
 bool FTypeGenerator::isdeprecated(const std::shared_ptr<FAnnotationBlock> &annotations)
 {
     if (annotations == nullptr)
@@ -283,8 +290,34 @@ std::string FTypeGenerator::generateFConstDeclarations(const std::shared_ptr<Bst
     std::list<std::string> literals;
     for (const auto &fconst : fTypeCollection->getConstants())
     {
-        auto item = "static const " + gen.getTypeName(fconst, nullptr, false) + " " + fconst->getName() + " = " +
-                    printInitializerExpression(fconst->getRhs()) + ";";
+        std::string item;
+        if (fconst->getType() && fconst->getType()->getPredefined() &&
+            fconst->getType()->getPredefined()->getValue() <= 9)
+        {
+            item = "static const " + gen.getTypeName(fconst, nullptr, false) + " " + fconst->getName() + " = " +
+                   printInitializerExpression(fconst->getRhs()) + ";";
+        }
+        else
+        {
+            item = "static const " + gen.getTypeName(fconst, nullptr, false) + " " + fconst->getName() + ";";
+        }
+        literals.emplace_back(std::move(item));
+    }
+    return "\n" + join(literals, "\n");
+}
+
+std::string FTypeGenerator::generateFConstDefinitions(const std::shared_ptr<BstIdl::FTypeCollection> &fTypeCollection)
+{
+    FrancaGeneratorExtensions &gen = FrancaGeneratorExtensions::getInstance();
+    std::list<std::string> literals;
+    for (const auto &fconst : fTypeCollection->getConstants())
+    {
+        if (fconst->getType() && fconst->getType()->getPredefined() &&
+            fconst->getType()->getPredefined()->getValue() <= 9)
+            continue;
+
+        auto item = "const " + gen.getTypeName(fconst, nullptr, false) + " " + gen.getElementName(fTypeCollection) +
+                    "::" + fconst->getName() + " = " + printInitializerExpression(fconst->getRhs()) + ";";
         literals.emplace_back(std::move(item));
     }
     return "\n" + join(literals, "\n");

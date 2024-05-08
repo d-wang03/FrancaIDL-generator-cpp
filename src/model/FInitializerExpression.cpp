@@ -37,18 +37,12 @@ void FInitializerExpression::validate(std::shared_ptr<FTypeRef> &type, bool isAr
 void FInitializerExpression::EvaluableValidate(std::shared_ptr<FTypeRef> &type, bool isArray, std::string &value,
                                                bool is_init_exp)
 {
-    if (type->getDerived() != nullptr)
+    if (auto tmp_type = type->getDerived())
     {
-        auto typeDef = std::dynamic_pointer_cast<FTypeDef>(type);
-        auto tmp_type = type->getDerived();
-        if (tmp_type != nullptr)
+        if (auto typeDef = std::dynamic_pointer_cast<FTypeDef>(tmp_type))
         {
-            auto typeDef = std::dynamic_pointer_cast<FTypeDef>(tmp_type);
-            if (typeDef != nullptr)
-            {
-                type = typeDef->getActualType();
-                EvaluableValidate(type, isArray, value, false);
-            }
+            type = typeDef->getActualType();
+            EvaluableValidate(type, isArray, value, false);
         }
     }
 }

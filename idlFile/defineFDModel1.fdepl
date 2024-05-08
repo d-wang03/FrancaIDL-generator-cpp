@@ -1,0 +1,40 @@
+import "../idlFile/testMySpec.fdepl"
+import "../idlFile/testFDModel1.fidl"
+
+define testMySpec for interface fdmodel1.interface1 as FDModel1Def{ 
+
+    method divide {
+        CallSemantics = synchronous
+        IsOptional = true
+        PerformanceImpact = none
+        in{
+            struct1{
+                #struct{
+                    aa{
+                        #struct{
+                            num1 {Encoding = utf16}
+                        }
+                    }
+                }
+            }
+        }
+        out{
+            str {
+                    Encoding = unicode
+               } 
+        }
+    }
+
+    struct infor1{
+        str1 {Encoding = utf8
+              IsOptional = false
+              }
+        struct3 {
+            #struct {
+                str {Encoding = unicode}
+            }
+        }
+    }
+
+
+}

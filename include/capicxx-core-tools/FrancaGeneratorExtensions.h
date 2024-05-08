@@ -15,11 +15,12 @@
  */
 #ifndef FRANCA_GENERATOR_EXTENSIONS_C
 #define FRANCA_GENERATOR_EXTENSIONS_C
-#include <list>
-#include <algorithm>
-#include <sys/types.h>
-#include <map>
 #include "CommonapiPropertyAccessor.h"
+#include <algorithm>
+#include <list>
+#include <map>
+#include <sys/types.h>
+
 #define ROT32(x, y) (x << y) | (x >> (32 - y))
 namespace BstCommonAPI
 {

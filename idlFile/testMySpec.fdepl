@@ -1,0 +1,13 @@
+import "../idlFile/testFDModel1.fidl"
+specification testMySpec {
+    for methods {
+        CallSemantics: {synchronous, asynchronous};
+        PerformanceImpact: {none, medium, substantial} (optional);
+        IsOptional: Boolean; 
+    }
+    for strings {
+        Encoding : {utf8, utf16, unicode} (default: utf8);
+        IsOptional: Boolean; 
+
+    }
+}

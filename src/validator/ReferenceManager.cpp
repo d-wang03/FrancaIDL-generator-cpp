@@ -411,7 +411,7 @@ std::list<std::string> ReferenceManager::resolveQerElementRef()
         if (ref != nullptr)
         {
             auto tmp = qer->getElement();
-            if (tmp != nullptr)
+            if (tmp != nullptr && tmp != ref)
             {
                 qer->setElement(nullptr);
                 errorList.emplace_back(fmt::format("duplicate reference: {1}, previous is {2}, used by {0}.",

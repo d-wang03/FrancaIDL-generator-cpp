@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2024 Black Sesame Technologies
- *
  * Copyright (C) 2019 Bayerische Motoren Werke AG (BMW).
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -17,78 +15,6 @@
 import "platform:/plugin/org.genivi.commonapi.core/deployment/CommonAPI-4_deployment_spec.fdepl"
 
 specification org.genivi.commonapi.someip.deployment extends org.genivi.commonapi.core.deployment {
-
-    for providers
-    {
-        /*
-         * all depl in providers for vsomeip client & server config file.
-         * 
-         * If SomeIpConfigGenEnable was true, config files for client & server would be generated.
-         * Otherwise, the config files would not be.
-         */
-        SomeIpConfigGenEnable: Boolean                              (default: false);
-
-        /*
-         * The IP addresses of the host system of client and server:(default)
-         * If one is not be empty, the correspending config file will not be generated.
-         */
-        SomeIpConfigClientHostUnicast: String                             (default: "");
-        SomeIpConfigServerHostUnicast: String                             (default: "");
-
-        /*
-         * logging : (optional)
-         * The following five parameters must be used together.
-         *     SomeIpConfigLoggingLevel : Specifies the log level.
-         *     SomeIpConfigLoggingViaConsole : Specifies whether logging via console is enabled.
-         *     SomeIpCreateLogFile : Specifies whether a log file should be created.
-         *     SomeIpLogFileAbsPath : absolute path of the log file when SomeIpCreateLogFile is true.
-         *     SomeIpLoggingDLT : Specifies whether Diagnostic Log and Trace (DLT) is enabled.
-         */
-        SomeIpConfigLoggingLevel: {trace, debug, info, warning, error, fatal} (optional);
-        SomeIpConfigLoggingViaConsole: Boolean                            (optional);
-        SomeIpCreateLogFile: Boolean                                (optional);
-        SomeIpLogFileAbsPath: String                                (optional);
-        SomeIpLoggingDLT: Boolean                                   (optional);
-        SomeIpVersionCyclicLogEable: Boolean                        (default: true);
-        SomeIpVersionLogInterval: Integer                           (default: 10);
-        SomeIpMemoryLogInterval: Integer                            (optional);
-        SomeIpStatusLogInterval: Integer                            (optional);
-        /* application
-         * Contains the applications of the host system that use this config file.
-         * The following two string array elements should correspond one to one.
-         * SomeIpApplicationNames :The names of the application. 
-         * SomeIpApplicationIDs   :The ids of the application. 
-         */
-        SomeIpApplicationNames: String[]                             (optional);
-        SomeIpApplicationIDs: String[]                               (optional);
-        /*
-         * service-discovery: (default)
-         * Contains settings related to the Service Discovery of the host application.
-         *     ServiceDiscoveryEnable: Specifies whether the Service Discovery is enabled.The default value is true.
-         *     ServiceDiscoveryMulticastAddress: The multicast address which the messages of the Service Discovery will be sent to. The default value is 224.0.0.1.
-         *     ServiceDiscoveryPort: Port for Service Discovery. The default setting is 30490.
-         *     ServiceDiscoveryProtocol: The protocol that is used for sending the Service Discovery messages. The default setting is udp.
-         *     ServiceDiscoveryInitialDelayMin: Minimum delay before first offer message.
-         *     ServiceDiscoveryInitialDelayMax: Maximum delay before first offer message.
-         *     ServiceDiscoveryRepetitionsBaseDelay: Base delay sending offer messages within the repetition phase.
-         *     ServiceDiscoveryRepetitionsMax: Maximum number of repetitions for provided services within the repetition phase.
-         *     ServiceDiscoveryttl: Lifetime of entries for provided services as well as consumed services and eventgroups.
-         *     ServiceDiscoveryCyclicOfferDelay: Cycle of the OfferService messages in the main phase.
-         *     ServiceDiscoveryRequestResponseDelay: Minimum delay of a unicast message to a multicast message for provided services and eventgroups.
-         */
-        ServiceDiscoveryEnable: Boolean                              (default: true);
-        ServiceDiscoveryMulticastAddress: String                     (default: "224.0.0.1");
-        ServiceDiscoveryPort: Integer                                (default: 30490);
-        ServiceDiscoveryProtocol: {udp, tcp}                         (default: udp);
-        ServiceDiscoveryInitialDelayMin: Integer                     (optional);
-        ServiceDiscoveryInitialDelayMax: Integer                     (optional);
-        ServiceDiscoveryRepetitionsBaseDelay: Integer                (optional);
-        ServiceDiscoveryRepetitionsMax: Integer                      (optional);
-        ServiceDiscoveryttl: Integer                                 (optional);
-        ServiceDiscoveryCyclicOfferDelay: Integer                    (optional);
-        ServiceDiscoveryRequestResponseDelay: Integer                (optional);
-
-    }
 
     for instances {
         SomeIpInstanceID:            Integer                         ;

@@ -17,15 +17,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 PROJECT(FLibGenerator LANGUAGES CXX)
 
-# find_package(Threads REQUIRED)
-
-# include_directories(../include)
-
 file(GLOB LIB_TOOL_SRCS "*.cpp")
 list(SORT LIB_TOOL_SRCS)
 
-# add_executable(${PROJECT_NAME} ${LIB_TOOL_SRCS})
-# add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-# target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads FDIDLParser IDLParser FValidator FModel FDModel FGenerator fmt stdc++fs)
 add_library(${PROJECT_NAME} ${LIB_TOOL_SRCS})
-# target_link_libraries(${PROJECT_NAME} PRIVATE FDIDLParser IDLParser FValidator FModel FDModel FGenerator fmt stdc++fs)

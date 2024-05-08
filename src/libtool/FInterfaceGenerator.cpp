@@ -101,6 +101,7 @@ std::string FInterfaceGenerator::generateSource(const std::shared_ptr<FInterface
         if (needsSourceComment(type))
             header += FTypeGenerator::generateComments(type, false);
     }
+    header += FTypeGenerator::getInstance().generateFConstDefinitions(fInterface) + "\n";
     header += "\n" + genExtention.generateNamespaceEndDeclaration(model);
     header += "\n" + genExtention.generateVersionNamespaceEnd(fInterface);
     return header;
@@ -113,19 +114,29 @@ bool FInterfaceGenerator::needsSourceComment(std::shared_ptr<FType> &_type)
     return false;
 }
 
-bool FInterfaceGenerator::hasSourceFile(const std::shared_ptr<FInterface> &fInterface)
+bool FInterfaceGenerator::hasSourceFile(const std::shared_ptr<BstIdl::FInterface> &fInterface)
 {
     bool hasTypeWithImplementation = false;
+    bool hasConstantWithImplementation = false;
     auto ins = FTypeGenerator::getInstance();
     for (auto type : fInterface->getTypes())
     {
         if (ins.hasImplementation(type))
         {
             hasTypeWithImplementation = true;
-            break;
+            return true;
         }
     }
-    return hasTypeWithImplementation;
+    for (auto constdef : fInterface->getConstants())
+    {
+        if (ins.hasImplementation(constdef))
+        {
+            hasConstantWithImplementation = true;
+            return true;
+        }
+    }
+    std::cout << "lib interface has no source.cpp\n";
+    return false;
 }
 
 void FInterfaceGenerator::generateInterface(const std::shared_ptr<FInterface> &fInterface, const std::string &dir)

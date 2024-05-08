@@ -16,14 +16,17 @@
 #ifndef GENERAL_SERVICE_GENERATOR_EXTENSIONS_H
 #define GENERAL_SERVICE_GENERATOR_EXTENSIONS_H
 #include <list>
-#include <memory>
-#include <algorithm>
-#include <sys/types.h>
 #include <map>
+#include <memory>
 #include <unordered_map>
+/*
+#include "asf-tools/ASFPropertyAccessor.h"*/
 #include "asf-tools/ASFPropertyAccessor.h"
+
 #include "asf-tools/MsgType.h"
-#include "someipTools/SomeipPropertyAccessor.h"
+//#include "capicxx-core-tools/CommonapiPropertyAccessor.h"
+
+#define ROT32(x, y) (x << y) | (x >> (32 - y))
 namespace BstASF
 {
 
@@ -57,12 +60,27 @@ public:
     {
         m_someipProviderAccesssor = std::make_shared<BstCommonAPI::SomeipPropertyAccessor>(
             std::make_shared<BstIdl::FDeployedProvider>(provider));
-    } 
+    } // SomeipPropertyAccessor
     const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> getSomeipProviderAccessor() const
     {
         return m_someipProviderAccesssor;
     }
 
+    /*
+        void insertMainInfs(const std::string &str,
+                            const std::shared_ptr<BstIdl::FInterface> &inf)
+        {
+            m_MainInterfaces[str] = inf;
+        }
+        std::shared_ptr<BstIdl::FInterface> getMainInf(const std::string &str) const;
+
+        std::shared_ptr<BstIdl::FInterface> getMainInf(const std::shared_ptr<BstIdl::FInterface> &inf) const;
+
+        bool ifMainInf(const std::shared_ptr<BstIdl::FInterface> &inf) const;
+
+        bool ifMainInf(const std::shared_ptr<BstIdl::FDExtensionElement> &instance) const;
+
+    */
     void insertMethodRepliesMap(const std::shared_ptr<BstIdl::FMethod> &md, const std::map<std::string, bool> &replies)
     {
         m_allMethodRepliesMap[md] = replies;
@@ -150,6 +168,7 @@ public:
 
     std::string getStubDefaultHeaderPath(const std::shared_ptr<BstIdl::FInterface> &fInterface);
     std::string getVersionPathPrefix(const std::shared_ptr<BstIdl::FTypeCollection> &_tc);
+    // std::shared_ptr<BstIdl::FVersion> getRVersion(std::shared_ptr<BstIdl::FObject> element) const;
     std::string getDirectoryPath(const std::shared_ptr<BstIdl::FModel> &fModel);
     std::string getStubDefaultHeaderFile(const std::shared_ptr<BstIdl::FInterface> &fInterface);
     std::string getStubSourceFile(const std::shared_ptr<BstIdl::FInterface> &fInterface);
@@ -226,6 +245,9 @@ public:
     {
         return m_rsInterfaces;
     }
+    // void setMethodName(const std::shared_ptr<BstIdl::FInterface> &fInterface, std::list<std::string> &method_names);
+    // bool addRecordAndSimulateMethod(std::shared_ptr<BstIdl::FInterface> &fInterface);
+    // void createRecordMethods(std::shared_ptr<BstIdl::FInterface> &fInterface);
     // record in logic
     std::string getRecordDefineInLogic(const std::shared_ptr<BstIdl::FMethod> &fMethod);
     // record in stubImpl
@@ -242,6 +264,7 @@ public:
     bool hasUserLogic(const std::shared_ptr<BstIdl::FDExtensionElement> &instance) const;
     std::shared_ptr<BstIdl::FDInterface> getSomeIpFDInterface(
         const std::shared_ptr<BstIdl::FDExtensionElement> &instance) const;
+    bool isFireAndForgetMethod(const std::shared_ptr<BstIdl::FMethod> &method) const;
     // protect module
     const bool isProjectMode() const
     {
@@ -262,7 +285,62 @@ public:
     }
     const std::list<std::string> record_simulate_methods = {"startRecord", "stopRecord", "readRecord"};
 
+    // vsomeip extensions
+    std::string isReliable(const std::shared_ptr<BstIdl::FBroadcast> &_broadcast);
+    std::string isReliable(const std::shared_ptr<BstIdl::FMethod> &_method);
+    std::string isNotifierReliable(const std::shared_ptr<BstIdl::FAttribute> &_attribute);
+    std::string getServerHostMessage(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                     const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+
+    std::string getClientHostMessage(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                     const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+
+    std::string getLogging(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                           const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+
+    std::string getServiceDiscovery(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                    const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+
+    std::string getApplications(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+    std::list<std::string> getApplication(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                          const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+    // vsomeip services
+    std::string getServices(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                            const std::shared_ptr<BstIdl::FDExtensionRoot> &_someipProvider,
+                            const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+
+    std::list<std::string> getService(const std::shared_ptr<BstIdl::FDExtensionRoot> &_provider,
+                                      const std::shared_ptr<BstIdl::FDExtensionRoot> &_someipProvider,
+                                      const std::shared_ptr<ASFPropertyAccessor> &_accessor);
+
+    std::string getEvents(const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+                          const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::list<std::string> getEvent(const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+                                    const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::string getEventGroups(const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+                               const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::list<std::string> getEventGroup(const std::shared_ptr<BstIdl::FDExtensionElement> &_instance,
+                                         const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::string getEventID(const std::shared_ptr<BstIdl::FBroadcast> &_broadcast,
+                           const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::list<std::string> getEventGroupsID(const std::shared_ptr<BstIdl::FBroadcast> &_broadcast,
+                                            const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::string getNotifierID(const std::shared_ptr<BstIdl::FAttribute> &_attribute,
+                              const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
+    std::list<std::string> getNotifierEventGroupsID(
+        const std::shared_ptr<BstIdl::FAttribute> &_attribute,
+        const std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> &_accessor);
+
 protected:
+    // std::unordered_map<std::string, std::shared_ptr<BstIdl::FInterface>> m_MainInterfaces;
     std::unordered_map<std::shared_ptr<BstIdl::FTypeCollection>, std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor>>
         m_someipInterfaceAccessor;
     std::shared_ptr<BstCommonAPI::SomeipPropertyAccessor> m_someipProviderAccesssor;
@@ -270,7 +348,7 @@ protected:
     std::unordered_map<std::shared_ptr<BstIdl::FMethod>, std::map<std::string, bool>> m_allMethodRepliesMap;
     std::multimap<std::shared_ptr<BstIdl::FInterface>, std::shared_ptr<BstIdl::FDExtensionElement>> m_servers;
     std::unordered_map<std::shared_ptr<BstIdl::FInterface>, std::list<std::string>> m_slotsMap;
-    // record & simulate named as rs
+    // record &simulate = rs
     std::list<std::shared_ptr<BstIdl::FInterface>> m_rsInterfaces;
 
 private:
@@ -278,8 +356,8 @@ private:
     virtual ~GeneralServiceGeneratorExtensions() = default;
     GeneralServiceGeneratorExtensions(const GeneralServiceGeneratorExtensions &) = default;
     GeneralServiceGeneratorExtensions(GeneralServiceGeneratorExtensions &&) noexcept = default;
-    GeneralServiceGeneratorExtensions &operator=(const GeneralServiceGeneratorExtensions &) = default;
-    GeneralServiceGeneratorExtensions &operator=(GeneralServiceGeneratorExtensions &&) = default;
+    GeneralServiceGeneratorExtensions &operator=(const GeneralServiceGeneratorExtensions &) = delete;
+    GeneralServiceGeneratorExtensions &operator=(GeneralServiceGeneratorExtensions &&) = delete;
 
     std::string getSlotName(const std::string &msgType, const std::shared_ptr<BstIdl::FModelElement> &obj,
                             const std::shared_ptr<BstIdl::FInterface> fInterface);
@@ -293,6 +371,7 @@ private:
 
     bool project_mode = false;
     bool geb_stub = false;
+    // const std::list<std::string> record_simulate_methods = {"startRecord", "stopRecord", "readRecord"};
 };
 
 } // namespace BstASF
