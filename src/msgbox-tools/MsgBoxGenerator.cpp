@@ -467,7 +467,6 @@ static int32_t dispatch_message(void)
 		bool need_reply = true;
 		// initialize serializer.
 		// it cannot fail, as ser won't be NULL.
-		(void)ipc_ser_init(ser);
 		// process message.
 $INS_SVR_CASES
 		if (need_reply) {
