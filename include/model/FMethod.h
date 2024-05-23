@@ -35,13 +35,6 @@ public:
     FMethod &operator=(const FMethod &) = default;
     FMethod &operator=(FMethod &&) = default;
 
-    std::string getName() const override
-    {
-        if (getSelector().empty())
-            return m_name;
-        else
-            return m_name + ":" + getSelector();
-    }
     std::string getFQN() const override
     {
         if (getSelector().empty())

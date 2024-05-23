@@ -991,7 +991,7 @@ std::string FrancaGeneratorExtensions::getClassName(const std::shared_ptr<FAttri
 
 std::string FrancaGeneratorExtensions::getClassName(const std::shared_ptr<FBroadcast> &fBroadcast)
 {
-    auto name = toFirstUpper(fBroadcast->getName());
+    auto name = toFirstUpper(fBroadcast->getName()) + toFirstUpper(fBroadcast->getSelector());
     return name;
 }
 
