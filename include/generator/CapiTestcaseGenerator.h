@@ -17,7 +17,7 @@
 #define CAPI_TESTCASE_GENERATOR_H
 #include "AbstractGenerator.h"
 #include "FDModel/FDInterface.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 

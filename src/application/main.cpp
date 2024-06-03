@@ -23,7 +23,7 @@
 #include "generator/CapiTestcaseGenerator.h"
 #include "generator/HTMLGenerator.h"
 #include "ipc-gen/ipcGen.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include "libtool/FLibraryGenerator.h"
 #include "msgbox-tools/MsgBoxGenerator.h"
 #include "someipTools/SomeipGenerator.h"

@@ -1,0 +1,8 @@
+[submodule "thirdparty/fmt"]
+	path = thirdparty/fmt
+	url = https://github.com/fmtlib/fmt.git
+	tag = 8.1.1
+[submodule "thirdparty/nlohmann-json"]
+	path = thirdparty/nlohmann-json
+	url = https://github.com/nlohmann/json.git
+	tag = v3.9.0

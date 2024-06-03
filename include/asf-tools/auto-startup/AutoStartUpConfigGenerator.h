@@ -19,7 +19,7 @@
 #include "FDModel/FDExtensionRoot.h"
 #include "asf-tools/ASFPropertyAccessor.h"
 #include "generator/AbstractGenerator.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include "model/FInterface.h"
 #include <string>
 
