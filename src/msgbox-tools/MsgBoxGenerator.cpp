@@ -553,14 +553,14 @@ static int32_t stop(void)
 #if defined IPC_RTE_POSIX
 	thrd_sleep(&(struct timespec){.tv_sec = 1}, NULL);
 	data->bRunning = false;
-	ipc_trans_layer_release_recv_wait(PID, data->handle);
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
 	ret = thrd_join(data->router_tid, NULL);
 	if (ret != thrd_success)
 		return -ERR_APP_STOP;
 #elif defined IPC_RTE_KERNEL
 	msleep(1000);
 	if (likely(data->route_task)) {
-		ipc_trans_layer_release_recv_wait(PID, data->handle);
+		ipc_trans_layer_release_recv_wait(data->pid, data->handle);
 		ret = kthread_stop(data->route_task);
 		if (unlikely(ret))
 			return -ERR_APP_STOP;
@@ -961,14 +961,14 @@ static int32_t stop(void)
 #if defined IPC_RTE_POSIX
 	thrd_sleep(&(struct timespec){.tv_sec = 1}, NULL);
 	data->bRunning = false;
-	ipc_trans_layer_release_recv_wait(PID, data->handle);
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
 	ret = thrd_join(data->router_tid, NULL);
 	if (ret != thrd_success)
 		return -ERR_APP_STOP;
 #elif defined IPC_RTE_KERNEL
 	msleep(1000);
 	if (likely(data->route_task)) {
-		ipc_trans_layer_release_recv_wait(PID, data->handle);
+		ipc_trans_layer_release_recv_wait(data->pid, data->handle);
 		ret = kthread_stop(data->route_task);
 		if (unlikely(ret))
 			return -ERR_APP_STOP;

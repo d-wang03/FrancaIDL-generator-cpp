@@ -2340,9 +2340,10 @@ std::string MsgBoxInfGenerator::getProxyBroadcastPtrInit(const std::shared_ptr<F
     if (!broadcast)
         return "";
 
-    std::string ret = R"(    client->$NAME_sub = subscribe_$NAME;
+    std::string ret = R"(client->$NAME_sub = subscribe_$NAME;
     client->$NAME_unsub = unsubscribe_$NAME;
-	(void)init_registry(&ext->$NAME_registry);)";
+	(void)init_registry(&ext->$NAME_registry);
+    )";
     replace_all(ret, "$NAME", broadcast->getName());
     return ret;
 }
@@ -2352,7 +2353,8 @@ std::string MsgBoxInfGenerator::getProxyBroadcastPtrDestroy(const std::shared_pt
     if (!broadcast)
         return "";
 
-    std::string ret = R"(destroy_registry(&s_ext->$NAME_registry);)";
+    std::string ret = R"(destroy_registry(&s_ext->$NAME_registry);
+    )";
     replace_all(ret, "$NAME", broadcast->getName());
     return ret;
 }
@@ -2583,7 +2585,7 @@ int32_t $CLIENT_NAME_init(com_client_data_t *data, $CLIENT_NAME_t *client,
     client->version = get_ipc_inf_version;
     client->register_avail_changed = register_avail_changed_cb;
 $METHOD_REG_INIT
-$BROADCAST_REG_INIT
+    $BROADCAST_REG_INIT
 	client->dispatch_broadcast = dispatch_broadcast;
 	client->dispatch_reply = dispatch_reply;
 
