@@ -2111,17 +2111,18 @@ static int32_t subscribe_$NAME(
 
     ser = &data->serializer;
 
+	// set registry
+	s_ext->$NAME_registry.busy = true;
+	(void)add_registry(&s_ext->$NAME_registry, (void *)cb, ext, ext_buf);
+
 	// send request
 	ret = send_request(data, ser, s_ext->cid, CMD_METHOD_SUB_$UPPER_NAME,
                 cb2, ext2, NULL);
     if (ret < 0 || ret >= IPC_TOKEN_NUM) {
         IPC_LOG_ERR("send fail %d.\n", ret);
+        clear_registry(&s_ext->$NAME_registry);
         return ret;
     }
-
-	// set registry
-	s_ext->$NAME_registry.busy = true;
-	(void)add_registry(&s_ext->$NAME_registry, (void *)cb, ext, ext_buf);
 
     return RESULT_SUCCESS;
 }
