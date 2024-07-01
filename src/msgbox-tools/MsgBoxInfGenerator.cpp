@@ -959,14 +959,19 @@ static int32_t $NAME($ARGS)
         replace_one(ret, "broadcast_reg_entry_t *entry = NULL;", "broadcast_reg_entry_t *entry = entries;");
         remove_all(ret, "	broadcast_registry_t *reg = NULL;\n");
         // replace_one(ret, "if (!data || !s_ext)", "if (!data || !s_ext || !entry || size == 0)");
-        replace_one(ret, "	reg = &s_ext->$NAME_registry;\n\tentry = reg->entries + reg->start;\n", 
-        R"(	if (!entry || size == 0) {
-		broadcast_registry_t *reg = &s_ext->$NAME_registry;
-		entry = reg->entries + reg->start;
-		size = reg->end - reg->start;
+        replace_one(ret, "	ret = send_broadcast(data, ser, &s_ext->$NAME_registry, CMD_BROADCAST_$UPPER_NAME);\n", 
+        R"(	broadcast_registry_t *reg = &s_ext->$NAME_registry;
+	if (entries && size != 0) {
+		reg = (broadcast_registry_t*)malloc(sizeof(broadcast_registry_t));
+		reg->start = 0;
+		reg->end  = sizeof(entries)/sizeof(broadcast_reg_entry_t);
+		reg->entries = entries;
 	}
+
+	ret = send_broadcast(data, ser, reg, CMD_BROADCAST_$UPPER_NAME);
+	if (entries && size != 0) {
+		free(reg);
 )");
-        replace_one(ret, "for (index = reg->start; index < reg->end; ++index, ++entry) {", "for (index = 0; index < size; ++index, ++entry) {");
     }
     
     replace_all(ret, "$NAME", name);
