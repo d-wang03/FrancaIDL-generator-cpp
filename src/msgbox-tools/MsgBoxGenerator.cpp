@@ -501,8 +501,6 @@ static void *router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
-
-	return RESULT_SUCCESS;
 }
 
 // start message router
@@ -521,7 +519,7 @@ static int32_t start(void)
 
 	data->bRunning = true;
 #if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->router_task, NULL, router_func, NULL);
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
@@ -551,7 +549,7 @@ static int32_t stop(void)
 	sleep(1);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = pthread_join(data->router_task, NULL);
+	ret = pthread_join(data->route_task, NULL);
 	if (ret != 0)
 		return -ERR_APP_STOP;
 #elif defined IPC_RTE_KERNEL
@@ -911,8 +909,6 @@ static void *router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
-
-	return RESULT_SUCCESS;
 }
 
 // start message router
@@ -931,7 +927,7 @@ static int32_t start(void)
 
 	data->bRunning = true;
 #if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->router_task, NULL, router_func, NULL);
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
@@ -961,7 +957,7 @@ static int32_t stop(void)
 	sleep(1);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = pthread_join(data->router_task, NULL);
+	ret = pthread_join(data->route_task, NULL);
 	if (ret != 0)
 		return -ERR_APP_STOP;
 #elif defined IPC_RTE_KERNEL
