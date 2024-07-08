@@ -589,7 +589,10 @@ $PROVIDER_NAME_t *$PROVIDER_NAME_init($PROVIDER_NAME_data_t *ins)
 	ret = ipc_trans_layer_stub_create_handle(data->pid, data->fid, data->sid,
                 data->pid, &data->handle);
 	if (ret < 0)
+	{
+		IPC_LOG_ERR("create handle fail %d.\n", ret);
 		return NULL;
+	}
 
 	// init servers
 $INS_SVR_INIT
@@ -998,7 +1001,10 @@ $INS_INIT
 	// create client handle.
 	ret = ipc_trans_layer_proxy_create_handle(data->pid, data->fid, data->sid, $DST, &data->handle);
 	if (ret < 0)
+	{
+		IPC_LOG_ERR("create handle fail %d.\n", ret);
 		return NULL;
+	}
 
 #ifdef IPC_RTE_BAREMETAL
 	ins->client.receive_message = receive_message;
