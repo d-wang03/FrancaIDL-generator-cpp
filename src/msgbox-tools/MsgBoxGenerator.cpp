@@ -501,6 +501,7 @@ static void *router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
+    return arg;
 }
 
 // start message router
@@ -912,6 +913,7 @@ static void *router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
+    return arg;
 }
 
 // start message router
