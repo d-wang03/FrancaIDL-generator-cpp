@@ -925,6 +925,8 @@ static int32_t $NAME($ARGS)
 	serdes_t *ser = &serdes;
 #endif
 	com_server_data_t *data = s_data;
+	broadcast_reg_entry_t *entries = NULL;
+	uint32_t size = 0;
 
 	if (!data || !s_ext)
 		return -ERR_APP_PARAM;
@@ -936,7 +938,9 @@ static int32_t $NAME($ARGS)
     if (ret < 0)
 	    return -ERR_APP_SERDES;
 
-	ret = send_broadcast(data, ser, &s_ext->$NAME_registry, CMD_BROADCAST_$UPPER_NAME);
+	entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;
+	size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;
+	ret = send_broadcast(data, ser, entries, CMD_BROADCAST_$UPPER_NAME, size);
     return ret;
 })";
 
@@ -957,21 +961,27 @@ static int32_t $NAME($ARGS)
         arg_list.emplace_back("broadcast_reg_entry_t *entries");
         arg_list.emplace_back("uint32_t size");
         replace_one(ret, "broadcast_reg_entry_t *entry = NULL;", "broadcast_reg_entry_t *entry = entries;");
-        remove_all(ret, "	broadcast_registry_t *reg = NULL;\n");
+        remove_all(ret, "	broadcast_reg_entry_t *entries = NULL;\n");
+        remove_all(ret, "	uint32_t size = 0;\n");
         // replace_one(ret, "if (!data || !s_ext)", "if (!data || !s_ext || !entry || size == 0)");
-        replace_one(ret, "	ret = send_broadcast(data, ser, &s_ext->$NAME_registry, CMD_BROADCAST_$UPPER_NAME);\n", 
-        R"(	broadcast_registry_t *reg = &s_ext->$NAME_registry;
-	if (entries && size != 0) {
-		reg = (broadcast_registry_t*)malloc(sizeof(broadcast_registry_t));
-		reg->start = 0;
-		reg->end  = sizeof(entries)/sizeof(broadcast_reg_entry_t);
-		reg->entries = entries;
-	}
+        replace_one(ret, "	entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;\n",
+        R"(    if (!entries || size == 0) {
+        entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;)");
 
-	ret = send_broadcast(data, ser, reg, CMD_BROADCAST_$UPPER_NAME);
-	if (entries && size != 0) {
-		free(reg);
+        replace_one(ret, "size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;\n",
+        R"(
+        size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;
+    }
 )");
+
+//         replace_one(ret, "	ret = send_broadcast(data, ser, &s_ext->$NAME_registry, CMD_BROADCAST_$UPPER_NAME);\n", 
+//         R"(     
+//         if (!entries && size == 0) {
+// 		entries = s_ext->$NAME_registry.entries;
+//         size = s_ext->$NAME_registry.end;
+// 	}
+// 	ret = send_broadcast(data, ser, reg, CMD_BROADCAST_$UPPER_NAME);
+// )");
     }
     
     replace_all(ret, "$NAME", name);
