@@ -484,7 +484,11 @@ $INS_SVR_CASES
 	return ret;
 }
 #ifndef IPC_RTE_BAREMETAL
+#if defined IPC_RTE_KERNEL
+static int router_func(void *arg)
+#else
 static void *router_func(void *arg)
+#endif
 {
 	int32_t ret = 0;
 
@@ -501,7 +505,11 @@ static void *router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
-    return arg;
+#if defined IPC_RTE_KERNEL
+	return RESULT_SUCCESS;
+#else
+	return arg;
+#endif
 }
 
 // start message router
@@ -896,7 +904,11 @@ static int32_t dispatch_message(void)
 	return ret;
 }
 #ifndef IPC_RTE_BAREMETAL
+#if defined IPC_RTE_KERNEL
+static int router_func(void *arg)
+#else
 static void *router_func(void *arg)
+#endif
 {
 	int32_t ret = 0;
 
@@ -913,7 +925,11 @@ static void *router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
-    return arg;
+#if defined IPC_RTE_KERNEL
+	return RESULT_SUCCESS;
+#else
+	return arg;
+#endif
 }
 
 // start message router
