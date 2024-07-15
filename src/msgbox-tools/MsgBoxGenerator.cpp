@@ -465,9 +465,6 @@ static int32_t dispatch_message(void)
 
 	while (ipc_trans_layer_stub_get_method_msg(data->pid, data->handle, des) >= 0) {
 		bool need_reply = true;
-		// initialize serializer.
-		// it cannot fail, as ser won't be NULL.
-		// process message.
 $INS_SVR_CASES
 		if (need_reply) {
             (void)ipc_ser_init(ser);
@@ -479,7 +476,7 @@ $INS_SVR_CASES
 			if (ret >= 0)
 				ret = ipc_ser_finish(ser);
 			if (ret >= 0)
-				ret = ipc_trans_layer_stub_send_reply_msg(data->pid, data->handle, ser);
+				ret = send_reply(data, ser);
 			if (ret < 0)
 				IPC_LOG_ERR("send reply fail %d.\n", ret);
 		}
@@ -487,7 +484,11 @@ $INS_SVR_CASES
 	return ret;
 }
 #ifndef IPC_RTE_BAREMETAL
+#if defined IPC_RTE_KERNEL
 static int router_func(void *arg)
+#else
+static void *router_func(void *arg)
+#endif
 {
 	int32_t ret = 0;
 
@@ -504,8 +505,11 @@ static int router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
-
+#if defined IPC_RTE_KERNEL
 	return RESULT_SUCCESS;
+#else
+	return arg;
+#endif
 }
 
 // start message router
@@ -524,8 +528,8 @@ static int32_t start(void)
 
 	data->bRunning = true;
 #if defined IPC_RTE_POSIX
-	ret = thrd_create(&data->router_tid, router_func, NULL);
-	if (ret != thrd_success) {
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
 	if (unlikely(!data->route_task)) {
@@ -551,11 +555,11 @@ static int32_t stop(void)
 
 	//sleep 1 seconds.
 #if defined IPC_RTE_POSIX
-	thrd_sleep(&(struct timespec){.tv_sec = 1}, NULL);
+	sleep(1);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = thrd_join(data->router_tid, NULL);
-	if (ret != thrd_success)
+	ret = pthread_join(data->route_task, NULL);
+	if (ret != 0)
 		return -ERR_APP_STOP;
 #elif defined IPC_RTE_KERNEL
 	msleep(1000);
@@ -594,7 +598,10 @@ $PROVIDER_NAME_t *$PROVIDER_NAME_init($PROVIDER_NAME_data_t *ins)
 	ret = ipc_trans_layer_stub_create_handle(data->pid, data->fid, data->sid,
                 data->pid, &data->handle);
 	if (ret < 0)
+	{
+		IPC_LOG_ERR("create handle fail %d.\n", ret);
 		return NULL;
+	}
 
 	// init servers
 $INS_SVR_INIT
@@ -605,6 +612,7 @@ $INS_SVR_INIT
 	ins->server.start = start;
 	ins->server.stop = stop;
 #endif
+    IPC_MUTEX_INIT(&data->send_mtx);
 	data->initialized = true;
 	return &ins->server;
 }
@@ -627,6 +635,7 @@ int32_t $PROVIDER_NAME_destroy(void)
 		return ret;
 
 $INS_DESTROY
+    IPC_MUTEX_DESTROY(&data->send_mtx);
 	ipc_memset(s_ins, 0, sizeof($PROVIDER_NAME_data_t));
 	s_ins = NULL;
 	return ret;
@@ -895,7 +904,11 @@ static int32_t dispatch_message(void)
 	return ret;
 }
 #ifndef IPC_RTE_BAREMETAL
+#if defined IPC_RTE_KERNEL
 static int router_func(void *arg)
+#else
+static void *router_func(void *arg)
+#endif
 {
 	int32_t ret = 0;
 
@@ -912,8 +925,11 @@ static int router_func(void *arg)
 		if (ret < 0)
 			continue;
 	}
-
+#if defined IPC_RTE_KERNEL
 	return RESULT_SUCCESS;
+#else
+	return arg;
+#endif
 }
 
 // start message router
@@ -932,8 +948,8 @@ static int32_t start(void)
 
 	data->bRunning = true;
 #if defined IPC_RTE_POSIX
-	ret = thrd_create(&data->router_tid, router_func, NULL);
-	if (ret != thrd_success) {
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
 	if (unlikely(!data->route_task)) {
@@ -959,11 +975,11 @@ static int32_t stop(void)
 
 	//sleep 1 seconds.
 #if defined IPC_RTE_POSIX
-	thrd_sleep(&(struct timespec){.tv_sec = 1}, NULL);
+	sleep(1);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = thrd_join(data->router_tid, NULL);
-	if (ret != thrd_success)
+	ret = pthread_join(data->route_task, NULL);
+	if (ret != 0)
 		return -ERR_APP_STOP;
 #elif defined IPC_RTE_KERNEL
 	msleep(1000);
@@ -1003,7 +1019,10 @@ $INS_INIT
 	// create client handle.
 	ret = ipc_trans_layer_proxy_create_handle(data->pid, data->fid, data->sid, $DST, &data->handle);
 	if (ret < 0)
+	{
+		IPC_LOG_ERR("create handle fail %d.\n", ret);
 		return NULL;
+	}
 
 #ifdef IPC_RTE_BAREMETAL
 	ins->client.receive_message = receive_message;
@@ -1011,12 +1030,8 @@ $INS_INIT
 #else
 	ins->client.start = start;
 	ins->client.stop = stop;
-#if defined IPC_RTE_POSIX
-	(void)mtx_init(&data->send_mtx, mtx_plain);
-#elif defined IPC_RTE_KERNEL
-	mutex_init(&data->send_mtx);
 #endif
-#endif
+    IPC_MUTEX_INIT(&data->send_mtx);
 	init_registry_list(data->method_registry, IPC_TOKEN_NUM);
 	data->initialized = true;
 	return &ins->client;
@@ -1037,13 +1052,7 @@ int32_t $PROVIDER_NAME_destroy(void)
 		return ret;
 
 $INS_DESTROY
-#ifndef IPC_RTE_BAREMETAL
-#if defined IPC_RTE_POSIX
-	mtx_destroy(&data->send_mtx);
-#elif defined IPC_RTE_KERNEL
-	mutex_destroy(&data->send_mtx);
-#endif
-#endif
+    IPC_MUTEX_DESTROY(&data->send_mtx);
 	destroy_registry_list(data->method_registry, IPC_TOKEN_NUM);
 	ipc_memset(s_ins, 0, sizeof($PROVIDER_NAME_data_t));
 	s_ins = NULL;

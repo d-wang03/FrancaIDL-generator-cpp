@@ -918,50 +918,29 @@ static int32_t register_$NAME_unsubcribed(broadcast_sub_t func)
 static int32_t $NAME($ARGS)
 {
     int32_t ret = 0;
-    int32_t send_ret = 0;
-    int32_t index = 0;
-    rw_msg_header_t header = { 0 };
-    broadcast_reg_entry_t *entry = NULL;
-	broadcast_registry_t *reg = NULL;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	serdes_t *ser = NULL;
 #else
 	serdes_t serdes = { 0 };
 	serdes_t *ser = &serdes;
 #endif
 	com_server_data_t *data = s_data;
+	broadcast_reg_entry_t *entries = NULL;
+	uint32_t size = 0;
 
 	if (!data || !s_ext)
 		return -ERR_APP_PARAM;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	ser = &data->serializer;
 #endif
-	header.pid = data->pid;
-    header.cmd = CMD_BROADCAST_$UPPER_NAME;
-    header.typ = MSGBX_MSG_TYPE_BROADCAST;
     ret = ipc_ser_init(ser);
     $SERIALIZE
     if (ret < 0)
 	    return -ERR_APP_SERDES;
 
-	reg = &s_ext->$NAME_registry;
-	entry = reg->entries + reg->start;
-	for (index = reg->start; index < reg->end; ++index, ++entry) {
-        if (entry->pid != 0) {
-            header.cid = entry->pid;
-            header.fid = entry->fid;
-            header.sid = entry->sid;
-            header.tok = data->token;
-            ipc_ser_set_header(ser, header);
-            ipc_ser_finish(ser);
-            send_ret = ipc_trans_layer_stub_send_broadcast(data->pid, data->handle, ser);
-            if (send_ret < 0)
-                IPC_LOG_ERR("send broadcast fail %d.\n", send_ret);
-            else
-                ++ret;
-        }
-    }
-    increase_token(data);
+	entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;
+	size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;
+	ret = send_broadcast(data, ser, entries, CMD_BROADCAST_$UPPER_NAME, size);
     return ret;
 })";
 
@@ -982,16 +961,27 @@ static int32_t $NAME($ARGS)
         arg_list.emplace_back("broadcast_reg_entry_t *entries");
         arg_list.emplace_back("uint32_t size");
         replace_one(ret, "broadcast_reg_entry_t *entry = NULL;", "broadcast_reg_entry_t *entry = entries;");
-        remove_all(ret, "	broadcast_registry_t *reg = NULL;\n");
+        remove_all(ret, "	broadcast_reg_entry_t *entries = NULL;\n");
+        remove_all(ret, "	uint32_t size = 0;\n");
         // replace_one(ret, "if (!data || !s_ext)", "if (!data || !s_ext || !entry || size == 0)");
-        replace_one(ret, "	reg = &s_ext->$NAME_registry;\n\tentry = reg->entries + reg->start;\n", 
-        R"(	if (!entry || size == 0) {
-		broadcast_registry_t *reg = &s_ext->$NAME_registry;
-		entry = reg->entries + reg->start;
-		size = reg->end - reg->start;
-	}
+        replace_one(ret, "	entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;\n",
+        R"(    if (!entries || size == 0) {
+        entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;)");
+
+        replace_one(ret, "size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;\n",
+        R"(
+        size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;
+    }
 )");
-        replace_one(ret, "for (index = reg->start; index < reg->end; ++index, ++entry) {", "for (index = 0; index < size; ++index, ++entry) {");
+
+//         replace_one(ret, "	ret = send_broadcast(data, ser, &s_ext->$NAME_registry, CMD_BROADCAST_$UPPER_NAME);\n", 
+//         R"(     
+//         if (!entries && size == 0) {
+// 		entries = s_ext->$NAME_registry.entries;
+//         size = s_ext->$NAME_registry.end;
+// 	}
+// 	ret = send_broadcast(data, ser, reg, CMD_BROADCAST_$UPPER_NAME);
+// )");
     }
     
     replace_all(ret, "$NAME", name);
@@ -1279,7 +1269,7 @@ std::string MsgBoxInfGenerator::getStubMethodReplyFuncTpl()
 static $REPLY_FUNC
 {
 	int32_t ret = 0;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	serdes_t *ser = NULL;
 #else
 	serdes_t serdes = { 0 };
@@ -1290,7 +1280,7 @@ static $REPLY_FUNC
 
 	if (!data)
 		return -ERR_APP_PARAM;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	ser = &data->serializer;
 #endif
 	ret = ipc_ser_init(ser);
@@ -1311,7 +1301,7 @@ static $REPLY_FUNC
 	}
 
 	if (ret >= 0)
-		ret = ipc_trans_layer_stub_send_reply_msg(data->pid, data->handle, ser);
+		ret = send_reply(data, ser);
 
 	if (ret < 0) {
 		IPC_LOG_ERR("send reply fail %d.\n", ret);
@@ -1727,7 +1717,7 @@ std::string MsgBoxInfGenerator::getProxyMethodAsyncImpl(const std::shared_ptr<FM
 static int32_t call_$NAME_async($ARGS)
 {
 	int32_t ret = 0;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	serdes_t *ser = NULL;
 #else
 	serdes_t serdes = { 0 };
@@ -1737,7 +1727,7 @@ static int32_t call_$NAME_async($ARGS)
 
 	if (!data || !s_ext)
 		return -ERR_APP_PARAM;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	ser = &data->serializer;
 #endif
 	(void)ipc_ser_init(ser);
@@ -1784,7 +1774,7 @@ std::string MsgBoxInfGenerator::getProxyMethodFireAndForgetfImpl(const std::shar
 static int32_t call_$NAME_fire_and_forget($ARGS)
 {
 	int32_t ret = 0;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	serdes_t *ser = NULL;
 #else
 	serdes_t serdes = { 0 };
@@ -1794,7 +1784,7 @@ static int32_t call_$NAME_fire_and_forget($ARGS)
 
 	if (!data || !s_ext)
 		return -ERR_APP_PARAM;
-#ifdef IPC_RTE_BAREMETAL
+#ifdef IPC_SHARED_SERIALIZER
 	ser = &data->serializer;
 #endif
 	(void)ipc_ser_init(ser);
@@ -2136,17 +2126,18 @@ static int32_t subscribe_$NAME(
 
     ser = &data->serializer;
 
+	// set registry
+	s_ext->$NAME_registry.busy = true;
+	(void)add_registry(&s_ext->$NAME_registry, (void *)cb, ext, ext_buf);
+
 	// send request
 	ret = send_request(data, ser, s_ext->cid, CMD_METHOD_SUB_$UPPER_NAME,
                 cb2, ext2, NULL);
     if (ret < 0 || ret >= IPC_TOKEN_NUM) {
         IPC_LOG_ERR("send fail %d.\n", ret);
+        clear_registry(&s_ext->$NAME_registry);
         return ret;
     }
-
-	// set registry
-	s_ext->$NAME_registry.busy = true;
-	(void)add_registry(&s_ext->$NAME_registry, (void *)cb, ext, ext_buf);
 
     return RESULT_SUCCESS;
 }

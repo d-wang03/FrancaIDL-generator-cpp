@@ -47,7 +47,7 @@ BST IDL Code Generator
     *    org.franca.core 0.13.1
     *    org.genivi.commonapi.core 3.2.0
     *    org.genivi.commonapi.someip 3.2.0.1
-    *    com.bst.ipc.deployment (Message Box) 1.1.0
+    *    com.bst.ipc.deployment (Message Box) 1.2.0
     *    commit hash 88fa1aa
     ```
 3. 运行指令：
@@ -97,6 +97,16 @@ BST IDL Code Generator
 **特别注意：**
 1. msgbx协议栈升级后，server端如果遇到枚举编译报错，需手动更新一下生成代码中相关命名。
 2. msgbx代码生成器更新，对部分生成接口可能存在入参数据类型的变更，如遇编译报错，请注意对齐头文件接口更新调用方式。
+  
+  
+#### v1.2 release note  
+1. &nbsp;bugfix 应用层协议栈发送消息时增加 mutex 保证 session 串行发送
+2. &nbsp;bugfix 应用层 baremetal 版本并发发送消息时，使用同一变量造成数据错乱
+3. &nbsp;feature 传输层增加 session external message buffer，仅 linux kernel 中使能
+4. &nbsp;feature 应用层代码结构优化
+5. &nbsp;bugfix linux kernel 中同步调用阻塞被系统信号意外唤醒异常
+6. &nbsp;支持 token num 调整  
+
 
 ## Build dependencies
 
