@@ -312,7 +312,14 @@ imports: "import" STRING
     {
         filename = CurrentAppPath::getInstance().parent_path().parent_path().string() + filename.substr(9);
     }
+
+    auto currentFile = fs::system_complete(drv.file);
     auto path = fs::path(filename);
+    if (fs::exists(currentFile) && !fs::exists(path))
+    {
+        path = fs::path(currentFile.parent_path().string() + "/" + path.string());
+    }
+
     if (!fs::exists(path))
         throw yy::parser::syntax_error(drv.location, "Imported file does not exist:"+filename);
     auto abs_path = fs::system_complete(path).string();

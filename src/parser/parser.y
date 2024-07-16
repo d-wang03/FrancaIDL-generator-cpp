@@ -37,6 +37,7 @@
       class FidlParserPrivate;
   }
   using namespace BstIdl;
+  namespace fs = std::experimental::filesystem;
 }
 
 // The parsing context.
@@ -261,10 +262,16 @@ imports: "import" IMPORTED_FQN "from" STRING
     $$=FFactory::getInstance().createImport();
     $$->setImportedNamespace($2);
 
-    auto path = std::experimental::filesystem::path($4);
-    if (!std::experimental::filesystem::exists(path))
+    auto currentFile = fs::system_complete(drv.filename);
+    auto path = fs::path($4);
+    if (fs::exists(currentFile) && !fs::exists(path))
+    {
+        path = fs::path(currentFile.parent_path().string() + "/" + path.string());
+    }
+
+    if (!fs::exists(path))
         throw bst::parser::syntax_error(drv.location, "Imported file does not exist.");
-    auto abs_path = std::experimental::filesystem::system_complete(path).string();
+    auto abs_path = fs::system_complete(path).string();
     $$->setImportURI(abs_path);
     BstIdl::FModelManager &mgr=BstIdl::FModelManager::getInstance();
     if(!mgr.addPendingFidl(abs_path))
@@ -274,10 +281,17 @@ imports: "import" IMPORTED_FQN "from" STRING
 {
     $$=FFactory::getInstance().createImport();
     $$->setImportedNamespace($2);
-    auto path = std::experimental::filesystem::path($4);
-    if (!std::experimental::filesystem::exists(path))
+
+    auto currentFile = fs::system_complete(drv.filename);
+    auto path = fs::path($4);
+    if (fs::exists(currentFile) && !fs::exists(path))
+    {
+        path = fs::path(currentFile.parent_path().string() + "/" + path.string());
+    }
+
+    if (!fs::exists(path))
         throw bst::parser::syntax_error(drv.location, "Imported file does not exist.");
-    auto abs_path = std::experimental::filesystem::system_complete(path).string();
+    auto abs_path = fs::system_complete(path).string();
     $$->setImportURI(abs_path);
     BstIdl::FModelManager &mgr=BstIdl::FModelManager::getInstance();
     if(!mgr.addPendingFidl(abs_path))
@@ -287,10 +301,17 @@ imports: "import" IMPORTED_FQN "from" STRING
 {
     $$=FFactory::getInstance().createImport();
     $$->setImportedNamespace($2);
-    auto path = std::experimental::filesystem::path($4);
-    if (!std::experimental::filesystem::exists(path))
+
+    auto currentFile = fs::system_complete(drv.filename);
+    auto path = fs::path($4);
+    if (fs::exists(currentFile) && !fs::exists(path))
+    {
+        path = fs::path(currentFile.parent_path().string() + "/" + path.string());
+    }
+
+    if (!fs::exists(path))
         throw bst::parser::syntax_error(drv.location, "Imported file does not exist.");
-    auto abs_path = std::experimental::filesystem::system_complete(path).string();
+    auto abs_path = fs::system_complete(path).string();
     $$->setImportURI(abs_path);
     BstIdl::FModelManager &mgr=BstIdl::FModelManager::getInstance();
     if(!mgr.addPendingFidl(abs_path))
@@ -299,10 +320,20 @@ imports: "import" IMPORTED_FQN "from" STRING
 | "import" "model" STRING 
 {
     $$=FFactory::getInstance().createImport();
-    auto path = std::experimental::filesystem::path($3);
-    if (!std::experimental::filesystem::exists(path))
+
+    auto currentFile = fs::system_complete(drv.filename);
+    auto path = fs::path($3);
+    if (fs::exists(currentFile) && !fs::exists(path))
+    {
+        path = fs::path(currentFile.parent_path().string() + "/" + path.string());
+        if (!fs::exists(path))
+            std::cout << "path not exists" << std::endl;
+    }
+
+    // auto path = fs::path($3);
+    if (!fs::exists(path))
         throw bst::parser::syntax_error(drv.location, "Imported file does not exist.");
-    auto abs_path = std::experimental::filesystem::system_complete(path).string();
+    auto abs_path = fs::system_complete(path).string();
     $$->setImportURI(abs_path);
     BstIdl::FModelManager &mgr=BstIdl::FModelManager::getInstance();
     if(!mgr.addPendingFidl(abs_path))
