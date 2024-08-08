@@ -46,8 +46,8 @@ std::string MainFileGenerator::generateMainSource()
     std::string src;
     std::string tmp;
     auto &gen = BstASF::GeneralServiceGeneratorExtensions::getInstance();
-    src += gen.generateASFLicenseHeader();
-    src += "\n" + getLicense();
+    src += getLicense();
+    src += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getConfigClassName();
 
     src += "\n#include <signal.h>\n#include <Bstlog/log.h>";

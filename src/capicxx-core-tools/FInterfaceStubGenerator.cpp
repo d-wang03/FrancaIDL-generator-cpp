@@ -61,12 +61,12 @@ std::string FInterfaceStubGenerator::generateStubHeader(
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     auto typeGen = FTypeGenerator::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto define_name = genExtention.getDefineName(fInterface);
     transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
-    header += "\n\n#ifndef " + define_name + "_STUB_HPP_";
+    header += "\n#ifndef " + define_name + "_STUB_HPP_";
     header += "\n#define " + define_name + "_STUB_HPP_";
     header += "\n\n#include <functional>";
     header += "\n#include <sstream>\n";
@@ -452,11 +452,11 @@ std::string FInterfaceStubGenerator::generateStubDefaultHeader(
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     auto define_name = genExtention.getDefineName(fInterface);
     transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
-    header += "\n#ifndef " + define_name + "_STUB_DEFAULT_HPP_";
+    header += "\n\n#ifndef " + define_name + "_STUB_DEFAULT_HPP_";
     header += "\n#define " + define_name + "_STUB_DEFAULT_HPP_\n";
     if (fInterface->getBase() != nullptr)
     {
@@ -805,9 +805,9 @@ std::string FInterfaceStubGenerator::generateStubDefaultSource(
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
-    header += "\n#include <" + genExtention.getStubDefaultHeaderPath(fInterface) + ">";
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
+    header += "\n\n#include <" + genExtention.getStubDefaultHeaderPath(fInterface) + ">";
     header += "\n#include <assert.h>";
     header += "\n" + genExtention.generateVersionNamespaceBegin(fInterface);
     auto &mgr = BstIdl::FModelManager::getInstance();

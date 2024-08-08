@@ -17,9 +17,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 PROJECT(msgbox_gen LANGUAGES CXX)
 
-add_definitions(-DCOMMIT_HASH="${COMMIT_HASH}")
-message(STATUS "COMMIT_HASH: ${COMMIT_HASH}")
-
 execute_process(
     COMMAND git -C ../../msgbx_ipc rev-parse  --short HEAD
     OUTPUT_VARIABLE COMMIT_HASH2

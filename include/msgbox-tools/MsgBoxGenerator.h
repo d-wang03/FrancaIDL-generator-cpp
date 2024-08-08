@@ -54,8 +54,6 @@ public:
 
     static std::string version(){return MSG_BOX_VERSION;}
 
-    static std::string commit_hash();
-
 private:
     bool generateStubHeader(const std::shared_ptr<FDExtensionRoot> &provider);
     bool generateStubSource(const std::shared_ptr<FDExtensionRoot> &provider);

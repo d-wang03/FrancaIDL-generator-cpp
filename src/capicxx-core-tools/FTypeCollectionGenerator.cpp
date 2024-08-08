@@ -100,8 +100,8 @@ std::string FTypeCollectionGenerator::generateHeader(
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fTypeCollection, false);
     auto name = genExtention.getDefineName(fTypeCollection);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -174,8 +174,8 @@ std::string FTypeCollectionGenerator::generateSource(
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fTypeCollection, false);
     header += "#include \"" + genExtention.getHeaderFile(fTypeCollection) + "\"\n";
     for (auto fStructTypeHeaderPath : getAllDerivedFStructTypeHeaderPaths(fTypeCollection))

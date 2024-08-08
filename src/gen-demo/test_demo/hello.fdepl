@@ -61,20 +61,6 @@ define org.genivi.commonapi.someip.deployment for interface com.bst.os.services.
 }
 
 define com.bst.os.idl.asf.deployment for provider as MyService {
-
-    instance com.bst.os.services.hello.HelloService as HelloServiceA{
-        // for generating stub or proxy
-        // InstanceType = server
-
-        // used for lib type generation
-        // UserLogicClassName = "MyLogicClass"
-        // UserLogicHeaderPath = "MyLogic.h"
-    }
-    
-}
-
-
-define org.genivi.commonapi.someip.deployment for provider as MyServiceA {
     // vsomeip configuration's properties def
     SomeIpConfigGenEnable = true
     SomeIpConfigClientHostUnicast = "192.163.0.0"                           
@@ -100,6 +86,21 @@ define org.genivi.commonapi.someip.deployment for provider as MyServiceA {
     ServiceDiscoveryCyclicOfferDelay = 200
     ServiceDiscoveryRequestResponseDelay = 150
     ServiceDiscoveryProtocol = tcp
+
+    instance com.bst.os.services.hello.HelloService as HelloServiceA{
+        // for generating stub or proxy
+        // InstanceType = server
+
+        // used for lib type generation
+        // UserLogicClassName = "MyLogicClass"
+        // UserLogicHeaderPath = "MyLogic.h"
+    }
+    
+}
+
+
+define org.genivi.commonapi.someip.deployment for provider as MyServiceA {
+
     // instance def
     instance com.bst.os.services.hello.HelloService{
 

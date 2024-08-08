@@ -41,6 +41,8 @@ execute_process(
     OUTPUT_VARIABLE COMMIT_HASH
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+add_definitions(-DCOMMIT_HASH="${COMMIT_HASH}")
+message(STATUS "COMMIT_HASH: ${COMMIT_HASH}")
 
 add_subdirectory(src/model)
 add_subdirectory(src/FDModel)

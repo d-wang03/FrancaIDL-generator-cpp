@@ -1,4 +1,3 @@
-
 package com.bst.os.idl.libtest
 import com.bst.os.idl.libtest.libTypes.* from "types.fidl"
 

@@ -1,4 +1,3 @@
-
 package com.bst.os.idl.doctest
 import com.bst.os.idl.doctest.staffTypes.* from "types.fidl"
 

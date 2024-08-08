@@ -114,8 +114,8 @@ std::string FInterfaceGenerator::generateHeader(const std::shared_ptr<BstIdl::FI
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto name = genExtention.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -142,7 +142,7 @@ std::string FInterfaceGenerator::generateHeader(const std::shared_ptr<BstIdl::FI
 )";
     for (auto requiredHeaderFile : libraryHeaders)
     {
-        header += "#include <" + requiredHeaderFile + ">\n";
+        header += "\n#include <" + requiredHeaderFile + ">";
     }
 
     header += R"(
@@ -204,8 +204,8 @@ std::string FInterfaceGenerator::generateSource(const std::shared_ptr<BstIdl::FI
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     header += "#include \"" + genExtention.getHeaderFile(fInterface) + "\"\n";
     header += "\n" + genExtention.generateVersionNamespaceBegin(fInterface);

@@ -61,7 +61,33 @@ define org.genivi.commonapi.someip.deployment for interface com.bst.os.services.
 }
 
 define com.bst.os.idl.asf.deployment for provider as MyService {
+    // vsomeip configuration's properties def
+    SomeIpConfigGenEnable = true
+    SomeIpConfigClientHostUnicast = "192.163.0.0"                           
+    SomeIpConfigServerHostUnicast = "10.28.9.13"            
 
+    SomeIpConfigLoggingLevel = error
+    SomeIpConfigLoggingViaConsole = true
+    SomeIpCreateLogFile = true
+    SomeIpLogFileAbsPath = "/userdata/abs/llll"
+    SomeIpLoggingDLT = false
+
+    SomeIpApplicationNames = {"server_sample", "client_sample"}
+    SomeIpApplicationIDs = {"0x632a", "0x632b"}
+
+    ServiceDiscoveryEnable = true
+    ServiceDiscoveryMulticastAddress = "196.2.2.4"
+    ServiceDiscoveryPort = 22664
+    ServiceDiscoveryInitialDelayMin = 10
+    ServiceDiscoveryInitialDelayMax = 200
+    ServiceDiscoveryRepetitionsBaseDelay = 20
+    ServiceDiscoveryRepetitionsMax = 300
+    ServiceDiscoveryttl = 20 
+    ServiceDiscoveryCyclicOfferDelay = 200
+    ServiceDiscoveryRequestResponseDelay = 150
+    ServiceDiscoveryProtocol = tcp
+
+    //auto-startup properties
     config_type = systemd
     // json
     module_auto_startup = true
@@ -102,31 +128,6 @@ define com.bst.os.idl.asf.deployment for provider as MyService {
 
 
 define org.genivi.commonapi.someip.deployment for provider as MyServiceA {
-    // vsomeip configuration's properties def
-    SomeIpConfigGenEnable = true
-    SomeIpConfigClientHostUnicast = "192.163.0.0"                           
-    SomeIpConfigServerHostUnicast = "10.28.9.13"            
-
-    SomeIpConfigLoggingLevel = error
-    SomeIpConfigLoggingViaConsole = true
-    SomeIpCreateLogFile = true
-    SomeIpLogFileAbsPath = "/userdata/abs/llll"
-    SomeIpLoggingDLT = false
-
-    SomeIpApplicationNames = {"server_sample", "client_sample"}
-    SomeIpApplicationIDs = {"0x632a", "0x632b"}
-
-    ServiceDiscoveryEnable = true
-    ServiceDiscoveryMulticastAddress = "196.2.2.4"
-    ServiceDiscoveryPort = 22664
-    ServiceDiscoveryInitialDelayMin = 10
-    ServiceDiscoveryInitialDelayMax = 200
-    ServiceDiscoveryRepetitionsBaseDelay = 20
-    ServiceDiscoveryRepetitionsMax = 300
-    ServiceDiscoveryttl = 20 
-    ServiceDiscoveryCyclicOfferDelay = 200
-    ServiceDiscoveryRequestResponseDelay = 150
-    ServiceDiscoveryProtocol = tcp
     // instance def
     instance com.bst.os.services.hello.HelloService{
 

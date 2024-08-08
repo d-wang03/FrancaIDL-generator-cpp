@@ -26,7 +26,8 @@ std::string FInterfaceProxyGenerator::generateProxyHeader(const std::shared_ptr<
     std::string content;
     auto typeGen = FTypeGenerator::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    content += genExtention.generateBSTLicenseHeader();
+    content += getLicense();
+    content += "\n" + genExtention.generateBSTLicenseHeader();
     content += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto name = genExtention.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -124,7 +125,8 @@ std::string FInterfaceProxyGenerator::generateProxySource(const std::shared_ptr<
         }
     }
 
-    content += genExtention.generateBSTLicenseHeader();
+    content += getLicense();
+    content += "\n" + genExtention.generateBSTLicenseHeader();
     content += "\n#include \"" + genExtention.getProxyHeaderPath(fInterface) + "\"\n";
     content += "#include \"" + stubHeaderPath + "\"\n";
     content += "\n" + genExtention.generateVersionNamespaceBegin(fInterface);

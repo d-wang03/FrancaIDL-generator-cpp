@@ -69,8 +69,8 @@ std::string FInterfaceSomeIPProxyGenerator::generateProxySource(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     header += "\n#include <" + genExtention.someipProxyHeaderPath(fInterface) + ">";
     header += "\n" + genExtention.startInternalCompilation();
@@ -311,8 +311,8 @@ std::string FInterfaceSomeIPProxyGenerator::generateProxyHeader(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
 
     auto defineName = genExtention.getDefineName(fInterface);

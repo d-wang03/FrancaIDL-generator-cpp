@@ -24,7 +24,8 @@ std::string FInterfaceStubGenerator::generateStubHeader(const std::shared_ptr<FI
     std::string header;
     auto typeGen = FTypeGenerator::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header += genExtention.generateBSTLicenseHeader();
+    header += getLicense();
+    header += "\n" + genExtention.generateBSTLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto name = genExtention.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -123,7 +124,8 @@ std::string FInterfaceStubGenerator::generateStubSource(const std::shared_ptr<FI
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header += genExtention.generateBSTLicenseHeader();
+    header += getLicense();
+    header += "\n" + genExtention.generateBSTLicenseHeader();
     header += "\n#include \"" + genExtention.getStubHeaderPath(fInterface) + "\"\n";
     header += "\n" + genExtention.generateVersionNamespaceBegin(fInterface);
     auto &mgr = FModelManager::getInstance();

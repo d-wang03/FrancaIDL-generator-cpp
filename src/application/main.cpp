@@ -73,7 +73,7 @@ static struct option long_options[] = {
 void version(void)
 {
     std::cout << "BST IDL Code Generator, compatible to :" << std::endl;
-    std::cout << "*    org.franca.core 0.13.1\n"
+    std::cout << "*    org.franca.core 0.12.0.1\n"
                  "*    org.genivi.commonapi.core 3.2.0\n"
                  "*    org.genivi.commonapi.someip 3.2.0.1\n"
                  "*    com.bst.ipc.deployment (Message Box) "

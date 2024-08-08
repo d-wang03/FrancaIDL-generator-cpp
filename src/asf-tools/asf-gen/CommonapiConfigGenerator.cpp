@@ -56,8 +56,8 @@ std::string CommonapiConfigGenerator::generateConfigHeader()
     std::string header;
     std::string tmp;
     auto &gen = BstASF::GeneralServiceGeneratorExtensions::getInstance();
-    header += gen.generateASFLicenseHeader();
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getConfigClassName();
     auto define_name = gen.getConfigClassName();
     transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
@@ -111,8 +111,8 @@ std::string CommonapiConfigGenerator::generateConfigSource()
     std::string src;
     std::string tmp;
     auto &gen = BstASF::GeneralServiceGeneratorExtensions::getInstance();
-    src += gen.generateASFLicenseHeader();
-    src += "\n" + getLicense();
+    src += getLicense();
+    src += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getConfigClassName();
     src += "\n#include \"" + class_name + ".h\"";
     src += "\n#include \"advancedservice.h\"";

@@ -22,7 +22,8 @@ std::string FTypeCollectionGenerator::generateHeader(const std::shared_ptr<FType
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header += genExtention.generateBSTLicenseHeader();
+    header += getLicense();
+    header += "\n" + genExtention.generateBSTLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fTypeCollection, false);
     auto name = genExtention.getDefineName(fTypeCollection);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -73,7 +74,8 @@ std::string FTypeCollectionGenerator::generateSource(const std::shared_ptr<FType
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header += genExtention.generateBSTLicenseHeader();
+    header += getLicense();
+    header += "\n" + genExtention.generateBSTLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fTypeCollection, false);
     header += "#include \"" + genExtention.getHeaderFile(fTypeCollection) + "\"\n";
     for (auto fStructTypeHeaderPath : getAllDerivedFStructTypeHeaderPaths(fTypeCollection))

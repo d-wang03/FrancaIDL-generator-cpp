@@ -84,11 +84,11 @@ std::string FTypeCollectionSomeIPDeploymentGenerator::generateDeploymentHeader(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader() + "\n";
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
     auto name = genExtention.getDefineName(_tc);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
-    header += "\n#ifndef " + name + "_SOMEIP_DEPLOYMENT_HPP_";
+    header += "\n\n#ifndef " + name + "_SOMEIP_DEPLOYMENT_HPP_";
     header += "\n#define " + name + "_SOMEIP_DEPLOYMENT_HPP_\n";
     auto DeploymentHeaders = someIPGen.getDeploymentInputIncludes(_tc, _accessor);
     for (auto deploymentHeader : DeploymentHeaders)
@@ -141,8 +141,8 @@ std::string FTypeCollectionSomeIPDeploymentGenerator::generateDeploymentSource(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
     auto DeploymentHeaders = someIPGen.getDeploymentInputIncludes(_tc, _accessor);
     for (auto it : DeploymentHeaders)
     {

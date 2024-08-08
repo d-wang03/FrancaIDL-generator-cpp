@@ -84,8 +84,8 @@ std::string FInterfaceStubImplGenerator::generateStubImplHeader(
         return "";
 
     std::string header;
-    header += gen.generateASFLicenseHeader();
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getStubImplClassName(instance);
     auto define_name = gen.getProjectDefineName(instance);
     transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
@@ -140,22 +140,22 @@ std::string FInterfaceStubImplGenerator::generateStubImplSource(
     if (!fInterface || !fInterface->getContainer())
         return "";
 
-    std::string header;
-    header += gen.generateASFLicenseHeader();
-    header += "\n" + getLicense();
+    std::string src;
+    src += getLicense();
+    src += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getStubImplClassName(instance);
     auto define_name = gen.getStubImplClassName(instance);
     transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
     // include && namespace
-    header += "\n#include <algorithm>\n#include <fstream>";
-    header += "\n#include \"" + gen.getStubImplHeaderFile(instance) + "\"";
-    header += "\nusing namespace " + fInterface->getNameSpace() + ";";
-    header += "\nusing namespace AdvancedServiceFramework;\n";
+    src += "\n#include <algorithm>\n#include <fstream>";
+    src += "\n#include \"" + gen.getStubImplHeaderFile(instance) + "\"";
+    src += "\nusing namespace " + fInterface->getNameSpace() + ";";
+    src += "\nusing namespace AdvancedServiceFramework;\n";
     // ctr and dectr
-    header += "\n" + class_name + "::" + class_name + "()\n{";
-    header += "\n\n}";
-    header += "\n" + class_name + "::~" + class_name + "()\n{";
-    header += "\n\n}\n";
+    src += "\n" + class_name + "::" + class_name + "()\n{";
+    src += "\n\n}";
+    src += "\n" + class_name + "::~" + class_name + "()\n{";
+    src += "\n\n}\n";
     // methods def
     std::map<std::string, bool> replies;
     auto serverName = gen.getServerName(instance);
@@ -167,13 +167,13 @@ std::string FInterfaceStubImplGenerator::generateStubImplSource(
             if (gen.isRecordAndSimulateInterface(inf) && contains(gen.record_simulate_methods, method->getName()) &&
                 inf != fInterface)
                 continue;
-            header += "\n" + BstCommonAPI::FTypeGenerator::generateComments(method, false);
+            src += "\n" + BstCommonAPI::FTypeGenerator::generateComments(method, false);
             if (m_methodrepliesMap.find(method) != m_methodrepliesMap.end())
                 replies = m_methodrepliesMap.find(method)->second;
-            header += gen.generateStubMethodDefine(method, replies, serverName, instance);
+            src += gen.generateStubMethodDefine(method, replies, serverName, instance);
         }
     }
-    return header;
+    return src;
 }
 
 std::string FInterfaceStubImplGenerator::generateMethodReplyDeclarations(

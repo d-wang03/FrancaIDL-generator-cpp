@@ -26,11 +26,6 @@ namespace fs = std::experimental::filesystem;
 namespace BstIdl
 {
 
-std::string MsgBoxGenerator::commit_hash()
-{
-    return COMMIT_HASH;
-}
-
 bool MsgBoxGenerator::generate()
 {
     if (m_destDir.empty())

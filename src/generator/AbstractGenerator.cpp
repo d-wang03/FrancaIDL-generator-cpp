@@ -40,5 +40,9 @@ std::string AbstractGenerator::mk_dir(const std::string &dir, const std::string 
 
     return whole_path;
 }
+std::string AbstractGenerator::commit_hash()
+{
+    return COMMIT_HASH;
+}
 
 } // namespace BstIdl

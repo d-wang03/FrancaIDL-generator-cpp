@@ -79,9 +79,9 @@ std::string FInterfaceSomeIPStubAdapterGenerator::generateStubAdapterHeader(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
-    header += FTypeGenerator::generateComments(_interface, false);
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
+    header += "\n" + FTypeGenerator::generateComments(_interface, false);
     auto defineName = genExtention.getDefineName(_interface);
     transform(defineName.begin(), defineName.end(), defineName.begin(), ::toupper);
     header += "\n#ifndef " + defineName + "_SOMEIP_STUB_ADAPTER_HPP_";
@@ -1041,9 +1041,9 @@ std::string FInterfaceSomeIPStubAdapterGenerator::generateStubAdapterSource(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
-    header += "\n#include <" + someipStubAdapterHeaderPath(_interface) + ">";
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
+    header += "\n\n#include <" + someipStubAdapterHeaderPath(_interface) + ">";
     header += "\n#include <" + genExtention.getHeaderPath(_interface) + ">";
     header += "\n" + genExtention.startInternalCompilation();
     header += "\n#include <CommonAPI/SomeIP/AddressTranslator.hpp>";

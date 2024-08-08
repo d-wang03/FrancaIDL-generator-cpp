@@ -59,15 +59,15 @@ std::string FInterfaceProxyGenerator::generateProxyBaseHeader(
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     auto typeGenerator = FTypeGenerator::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto name = genExtention.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
     header += "\n#ifndef " + name + "_PROXY_BASE_HPP_";
     header += "\n#define " + name + "_PROXY_BASE_HPP_";
 
-    header += "\n#include <" + genExtention.getHeaderPath(fInterface) + ">";
+    header += "\n\n#include <" + genExtention.getHeaderPath(fInterface) + ">";
     if (fInterface->getBase() != nullptr)
     {
         header += "\n#include <" + genExtention.getProxyBaseHeaderPath(fInterface->getBase()) + ">";
@@ -81,7 +81,7 @@ std::string FInterfaceProxyGenerator::generateProxyBaseHeader(
     {
         header += "\n#include <" + requiredHeaderFile + ">";
     }
-    header += "\n#if !defined (COMMONAPI_INTERNAL_COMPILATION)";
+    header += "\n\n#if !defined (COMMONAPI_INTERNAL_COMPILATION)";
     header += "\n#define COMMONAPI_INTERNAL_COMPILATION\n#define HAS_DEFINED_COMMONAPI_INTERNAL_COMPILATION_HERE";
     header += "\n#endif\n";
     for (auto requiredHeaderFile : libraryHeaders)
@@ -221,28 +221,28 @@ std::string FInterfaceProxyGenerator::generateProxyHeader(
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header = genExtention.generateCommonApiLicenseHeader();
-    header += "\n" + getLicense();
+    header = getLicense();
+    header += "\n" + genExtention.generateCommonApiLicenseHeader();
     auto name = genExtention.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
-    header += "\n#ifndef " + name + "_PROXY_HPP_";
+    header += "\n\n#ifndef " + name + "_PROXY_HPP_";
     header += "\n#define " + name + "_PROXY_HPP_";
-    header += "\n#include <" + genExtention.getProxyBaseHeaderPath(fInterface) + ">";
+    header += "\n\n#include <" + genExtention.getProxyBaseHeaderPath(fInterface) + ">";
     if (fInterface->getBase() != nullptr)
     {
         header += "\n#include \"" + genExtention.getProxyHeaderPath(fInterface->getBase()) + "\"";
     }
-    header += "\n#if !defined (COMMONAPI_INTERNAL_COMPILATION)";
+    header += "\n\n#if !defined (COMMONAPI_INTERNAL_COMPILATION)";
     header += "\n#define COMMONAPI_INTERNAL_COMPILATION";
     header += "\n#define HAS_DEFINED_COMMONAPI_INTERNAL_COMPILATION_HERE";
     header += "\n#endif";
 
     if (genExtention.hasAttributes(fInterface))
     {
-        header += "\n#include <CommonAPI/AttributeExtension.hpp>";
+        header += "\n\n#include <CommonAPI/AttributeExtension.hpp>";
         header += "\n#include <CommonAPI/Factory.hpp>";
     }
-    header += "\n#if defined (HAS_DEFINED_COMMONAPI_INTERNAL_COMPILATION_HERE)";
+    header += "\n\n#if defined (HAS_DEFINED_COMMONAPI_INTERNAL_COMPILATION_HERE)";
     header += "\n#undef COMMONAPI_INTERNAL_COMPILATION";
     header += "\n#undef HAS_DEFINED_COMMONAPI_INTERNAL_COMPILATION_HERE\n#endif\n";
 

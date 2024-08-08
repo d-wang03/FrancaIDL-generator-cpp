@@ -92,8 +92,9 @@ std::string FInterfaceLogicDefaultGenerator::generateLogicDefaultHeader(
         return "";
 
     auto &gen = BstASF::GeneralServiceGeneratorExtensions::getInstance();
-    std::string header(gen.generateASFLicenseHeader());
-    header += "\n" + getLicense();
+    std::string header;
+    header += getLicense();
+    header += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getLogicDefaultClassName(fInterface);
     auto define_name = gen.isProjectMode() ? gen.getProjectDefineName(fInterface) : gen.getDefineName(fInterface);
     std::transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
@@ -171,8 +172,9 @@ std::string FInterfaceLogicDefaultGenerator::generateLogicDefaultSource(
     if (!fInterface || !fInterface->getContainer())
         return "";
 
-    std::string src(gen.generateASFLicenseHeader());
-    src += "\n" + getLicense();
+    std::string src;
+    src += getLicense();
+    src += "\n" + gen.generateASFLicenseHeader();
     auto class_name = gen.getLogicDefaultClassName(fInterface);
 
     src += "\n#include \"typeconversion.h\"\n";
@@ -229,7 +231,9 @@ std::string FInterfaceLogicDefaultGenerator::generateLogicHeader(
         return "";
 
     std::string header;
-    header += "/**\n* This file is auto generated from template. Please add your own logic in this class.\n**/";
+    header += getLicense();
+    header += "\n" + gen.generateASFLicenseHeader();
+    replace_one(header, "* All manual modifications will be LOST by next generation.", "* All manual modifications will be LOST by next generation.\n * Please add your own logic to implement the functions in this class.");
     auto class_name = gen.getLogicClassName(instance);
     auto define_name = gen.getProjectDefineName(instance);
     std::transform(define_name.begin(), define_name.end(), define_name.begin(), ::toupper);
@@ -291,7 +295,9 @@ std::string FInterfaceLogicDefaultGenerator::generateLogicSource(
         return "";
 
     std::string src("");
-    src += "/**\n* This file is auto generated from template. Please add your own logic in this class.\n**/";
+    src += getLicense();
+    src += "\n" + gen.generateASFLicenseHeader();
+    replace_one(src, "* All manual modifications will be LOST by next generation.", "* All manual modifications will be LOST by next generation.\n * Please add your own logic to implement the functions in this class.");
     auto class_name = gen.getLogicClassName(instance);
     auto default_name = gen.getLogicDefaultClassName(fInterface);
     src += "\n#include \"" + class_name + ".h\"\n#include <Bstlog/log.h>\n";

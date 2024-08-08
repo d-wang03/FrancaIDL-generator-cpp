@@ -39,13 +39,22 @@ void CMakeGenerator::generateCMake(const std::string &dir, const bool &test_gen)
 
 std::string CMakeGenerator::generateCMakeLists(const bool &test_gen)
 {
-    std::string content = R"(cmake_minimum_required(VERSION 2.10))";
     std::string prj_name("");
     auto &gen = BstASF::GeneralServiceGeneratorExtensions::getInstance();
     if (gen.getAllServers().empty() || gen.getAllServers().begin()->first == nullptr ||
         gen.getAllServers().begin()->first->getContainer() == nullptr)
         return std::string("");
 
+    std::string content = R"({License}
+{ASF_LICENSE_HEADER}
+cmake_minimum_required(VERSION 2.10)
+)";
+    replace_one(content, "{License}", getLicense());
+    replace_one(content, "{ASF_LICENSE_HEADER}", gen.generateASFLicenseHeader());
+    replace_all(content, "/*", "#");
+    replace_all(content, " */", "#");
+    replace_all(content, " *", "#");
+    content += "\nproject(" + prj_name + ")\n";
     const bool isProjectMode = gen.isProjectMode();
     auto tmp = gen.getAllServers().begin()->first->getContainer()->getName();
     auto container_name = toFirstUpper(tmp.substr(tmp.find_last_of(".") + 1));
@@ -55,7 +64,7 @@ std::string CMakeGenerator::generateCMakeLists(const bool &test_gen)
     {
         prj_name = container_name + "Service";
     }
-    content += "\n\nproject(" + prj_name + ")\n";
+    content += "\nproject(" + prj_name + ")\n";
     content += R"(
 #find CommonAPI CommonAPI-SomeIP vsomeip3 Log
 find_package (CommonAPI REQUIRED CONFIG)

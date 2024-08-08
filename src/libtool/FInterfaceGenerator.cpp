@@ -22,7 +22,8 @@ std::string FInterfaceGenerator::generateHeader(const std::shared_ptr<FInterface
 {
     std::string header;
     auto fraExt = FrancaGeneratorExtensions::getInstance();
-    header += fraExt.generateBSTLicenseHeader();
+    header += getLicense();
+    header += "\n" + fraExt.generateBSTLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto name = fraExt.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -89,7 +90,8 @@ std::string FInterfaceGenerator::generateSource(const std::shared_ptr<FInterface
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
-    header += genExtention.generateBSTLicenseHeader();
+    header += getLicense();
+    header += "\n" + genExtention.generateBSTLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     header += "#include \"" + genExtention.getHeaderFile(fInterface) + "\"\n";
     header += "\n" + genExtention.generateVersionNamespaceBegin(fInterface);
@@ -172,6 +174,7 @@ std::string FInterfaceGenerator::generateInstanceHeader(std::shared_ptr<FInterfa
 {
     std::string header;
     auto genExtention = FrancaGeneratorExtensions::getInstance();
+    header += getLicense();
     header += "\n" + genExtention.generateBSTLicenseHeader();
     header += "\n" + FTypeGenerator::generateComments(fInterface, false);
     auto name = genExtention.getDefineName(fInterface);

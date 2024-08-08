@@ -82,8 +82,8 @@ std::string FInterfaceSomeIPDeploymentGenerator::generateDeploymentHeader(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
     auto name = genExtention.getDefineName(fInterface);
     transform(name.begin(), name.end(), name.begin(), ::toupper);
     header += "\n\n#ifndef " + name + "_SOMEIP_DEPLOYMENT_HPP_";
@@ -173,9 +173,9 @@ std::string FInterfaceSomeIPDeploymentGenerator::generateDeploymentSource(
     auto someIPGen = FrancaSomeIPGeneratorExtensions::getInstance();
     auto genExtention = FrancaGeneratorExtensions::getInstance();
     std::string header;
-    header += someIPGen.generateCommonApiSomeIPLicenseHeader();
-    header += "\n" + getLicense();
-    header += "\n#include <" + someIPGen.someipDeploymentHeaderPath(fInterface) + ">";
+    header += getLicense();
+    header += "\n" + someIPGen.generateCommonApiSomeIPLicenseHeader();
+    header += "\n\n#include <" + someIPGen.someipDeploymentHeaderPath(fInterface) + ">";
     header += "\n" + genExtention.generateVersionNamespaceBegin(fInterface);
     auto model = std::dynamic_pointer_cast<BstIdl::FModel>(fInterface->getContainer());
     header += genExtention.generateNamespaceBeginDeclaration(model) + "\n";
