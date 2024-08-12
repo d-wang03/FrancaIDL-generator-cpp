@@ -1173,7 +1173,7 @@ static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
 	uint8_t pid, fid, sid;
 	int32_t ret_size = 0;
 	uint32_t pos = 0;
-
+	$RET_DEF
 	if (!reg_map || size == 0 || (size % IPC_REG_MAP_BLOCK_SIZE != 0))
 		return -1;
 
@@ -1217,7 +1217,7 @@ static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
 	uint8_t pid, fid, sid;
 	int32_t ret_size = 0;
 	uint32_t pos = 0;
-
+	$RET_DEF
 	if (!reg_map || size == 0 || (size % IPC_REG_MAP_BLOCK_SIZE != 0))
 		return -1;
 

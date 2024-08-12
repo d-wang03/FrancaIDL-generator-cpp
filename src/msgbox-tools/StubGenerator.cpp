@@ -188,6 +188,7 @@ bool StubGenerator::generateSource()
     std::string broadcastRegistryCases;
     std::string exportRegMapVarsDef;
     std::string exportRegMapRetVar;
+    std::string importRegMapRetVar;
 
     for (const auto &b : m_interface->getBroadcasts())
     {
@@ -211,6 +212,7 @@ bool StubGenerator::generateSource()
     {
         exportRegMapVarsDef.append(R"(int32_t size_cnt = 0;)");
         exportRegMapRetVar = "0";
+        importRegMapRetVar = "";
     }
     else
     {
@@ -218,12 +220,15 @@ bool StubGenerator::generateSource()
 	int32_t exp_size = 0;
 	int32_t size_cnt = 0;)");
         exportRegMapRetVar = "ret";
+        importRegMapRetVar.append(R"(int32_t ret = 0;
+)");
     }
     replace_all(content, "$BROADCAST_ID_DEF", broadcastIDs);
     replace_all(content, "$BROADCAST_VARS", broadcastVars);
     replace_all(content, "$BROADCAST_DEF", broadcastDefs);
     replace_all(content, "$REG_VARS_DEF", exportRegMapVarsDef);
     replace_all(content, "$RET_VAR", exportRegMapRetVar);
+    replace_all(content, "$RET_DEF", importRegMapRetVar);
     replace_all(content, "$BROADCAST_CASE", trim(broadcastCases));
     replace_all(content, "$BROADCAST_REG_INIT", broadcastInits);
     replace_all(content, "$GET_ALL_SUB_SIZE", broadcastSubSize);
