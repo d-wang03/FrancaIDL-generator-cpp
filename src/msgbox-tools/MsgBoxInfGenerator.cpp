@@ -1147,9 +1147,7 @@ std::string MsgBoxInfGenerator::getStubRegistryMapTpl()
         ret = R"(
 static int32_t export_registry_map(uint8_t *reg_map, const size_t size, size_t *require_size)
 {
-	int32_t ret = 0;
-	int32_t exp_size = 0;
-	int32_t size_cnt = 0;
+	$REG_VARS_DEF
 
 	if (!reg_map)
 		return -1;
@@ -1165,12 +1163,11 @@ static int32_t export_registry_map(uint8_t *reg_map, const size_t size, size_t *
 	// export all broadcast subscribed registry map into reg_map
     $EXP_ALL_BROADCASTS_REG
 
-	return ret;
+	return $RET_VAR;
 }
 
 static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
 {
-	int32_t ret = 0;
 	uint8_t cmd = 0;
 	uint32_t idx = 0;
 	uint8_t pid, fid, sid;
@@ -1194,9 +1191,7 @@ static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
         ret = R"(
 static int32_t export_registry_map(uint8_t *reg_map, const size_t size, size_t *require_size)
 {
-	int32_t ret = 0;
-	int32_t exp_size = 0;
-	int32_t size_cnt = 0;
+	$REG_VARS_DEF
 
 	if (!reg_map)
 		return -1;
@@ -1212,12 +1207,11 @@ static int32_t export_registry_map(uint8_t *reg_map, const size_t size, size_t *
 	// export all broadcast subscribed registry map into reg_map
     $EXP_ALL_BROADCASTS_REG
 
-	return ret;
+	return $RET_VAR;
 }
 
 static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
 {
-	int32_t ret = 0;
 	uint8_t cmd = 0;
 	uint32_t idx = 0;
 	uint8_t pid, fid, sid;
