@@ -138,6 +138,7 @@ bool StubGenerator::generateSource()
     }
 
     replace_all(content, "$VERSION_COMMENT", getVersionComment());
+    replace_all(content, "$REG_MAP_LOAD_AND_EXPORT", getStubRegistryMapTpl());
     replace_all(content, "$DISPATCH_MESSAGE", getStubDispatchMessageTpl());
 
     std::string serverName = m_infName + "_server";
@@ -182,6 +183,10 @@ bool StubGenerator::generateSource()
     std::string broadcastDefs;
     std::string broadcastCases;
     std::string broadcastInits;
+    std::string broadcastSubSize;
+    std::string broadcastExpRegistry;
+    std::string broadcastRegistryCases;
+
     for (const auto &b : m_interface->getBroadcasts())
     {
         auto broadcast = b->getTarget();
@@ -191,14 +196,23 @@ bool StubGenerator::generateSource()
         broadcastDefs.append(getStubBroadcastCallFunc(broadcast));
         broadcastCases.append(getStubBroadcastCase(broadcast));
         broadcastInits.append(getStubBroadcastPtrInit(broadcast));
+        broadcastSubSize.append(getStubBroadcastSubscribedSize(broadcast));
+        broadcastExpRegistry.append(getStubBroadcastExportRegistry(broadcast));
+        broadcastRegistryCases.append(getStubBroadcastRegistryCase(broadcast));
         cmdRegs.append(getStubCmdRegStr("sub_" + name));
         cmdRegs.append(getStubCmdRegStr("unsub_" + name));
     }
+    trim(broadcastSubSize);
+    trim(broadcastExpRegistry);
+    trim(broadcastRegistryCases);
     replace_all(content, "$BROADCAST_ID_DEF", broadcastIDs);
     replace_all(content, "$BROADCAST_VARS", broadcastVars);
     replace_all(content, "$BROADCAST_DEF", broadcastDefs);
     replace_all(content, "$BROADCAST_CASE", trim(broadcastCases));
     replace_all(content, "$BROADCAST_REG_INIT", broadcastInits);
+    replace_all(content, "$GET_ALL_SUB_SIZE", broadcastSubSize);
+    replace_all(content, "$EXP_ALL_BROADCASTS_REG", broadcastExpRegistry);
+    replace_all(content, "$BROADCAST_REG_CASE", broadcastRegistryCases);
     replace_all(content, "$CMD_REG", cmdRegs);
     replace_all(content, "$VERSION", getVersionString());
     replace_all(content, "    ", "\t");

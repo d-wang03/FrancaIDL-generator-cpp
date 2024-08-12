@@ -63,6 +63,11 @@ protected:
     std::string getStubBroadcastVars(const std::shared_ptr<FBroadcast> &broadcast);
     std::string getStubBroadcastInternalVarDecls(const std::shared_ptr<FBroadcast> &broadcast);
     std::string getBroadcastCmds(const std::shared_ptr<FDBroadcast> &broadcast);
+    std::string getStubRegistryMapTpl();
+    std::string getStubBroadcastSubscribedSize(const std::shared_ptr<FBroadcast> &broadcast);
+    std::string getStubBroadcastExportRegistry(const std::shared_ptr<FBroadcast> &broadcast);
+    std::string getStubBroadcastRegistryCase(const std::shared_ptr<FBroadcast> &broadcast);
+    std::string getStubBroadcastRegistryCaseTpl();
     std::string getStubDispatchMessageTpl();
     std::string getStubDispatchMessageCaseTpl(bool fireAndForget);
     std::string getStubMethodCallFuncTpl();
@@ -107,10 +112,16 @@ protected:
     std::string getStubHeaderTpl();
     std::string getStubSourceTpl();
     std::string getVersionComment();
+    std::string getMethodComment(const std::shared_ptr<BstIdl::FMethod> &element);
+    std::string getBroadcastComment(const std::shared_ptr<BstIdl::FBroadcast> &element);
+    std::string getArgumentComment(const std::shared_ptr<BstIdl::FArgument> &arg, std::string &defaut_comment);
+    std::string generateComments(const std::shared_ptr<BstIdl::FModelElement> &model, bool inline_);
+    std::string breaktext(std::string text, const BstIdl::FAnnotationType &annotation);
 
     bool isFixedDerived(const std::shared_ptr<FTypeRef> &type);
 
     std::shared_ptr<FDExtensionElement> m_instance;
+    std::string broadcastCases;
     std::shared_ptr<FDInterface> m_interface;
     std::string m_infName;
     std::string m_srcEndID;

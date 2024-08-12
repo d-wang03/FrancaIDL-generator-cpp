@@ -543,9 +543,11 @@ std::string MsgBoxInfGenerator::getStubMethodSignature(const std::shared_ptr<FMe
     if (!method)
         return "";
 
+    // if (method->getComment())
+
     std::string ret = R"(/**
  * Stub function for method $NAME.
- *
+$METHOD_COMMENT
 $ARG_COMMENT
  */
 typedef void (*$METHOD_TYPE)(
@@ -561,7 +563,10 @@ typedef void (*$METHOD_TYPE)(
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " *" + a->getName());
         else
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " " + a->getName());
-        comments.emplace_back(replace_all(" * @param $ARG_NAME The input argument of method $NAME.", "$ARG_NAME", a->getName()));
+
+        std::string commentTpl(" * @param $ARG_NAME The input argument of method $NAME.");
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // comments.emplace_back(replace_all(" * @param $ARG_NAME The input argument of method $NAME.", "$ARG_NAME", a->getName()));
     }
     if (m_bSeparateReply && !method->isFireAndForget())
     {
@@ -573,7 +578,9 @@ typedef void (*$METHOD_TYPE)(
         for (const auto &a : method->getOutArgs())
         {
             arg_list.emplace_back(Transformer::MsgBoxGen::getTypeName(a->getType()) + " *" + a->getName());
-            comments.emplace_back(replace_all(" * @param $ARG_NAME The output argument of method $NAME.", "$ARG_NAME", a->getName()));
+            std::string commentTpl = " * @param $ARG_NAME The output argument of method $NAME.";
+            comments.emplace_back(getArgumentComment(a, commentTpl));
+            // comments.emplace_back(replace_all(" * @param $ARG_NAME The output argument of method $NAME.", "$ARG_NAME", a->getName()));
         }
         if (auto ptr = method->getErrorType())
         {
@@ -587,6 +594,10 @@ typedef void (*$METHOD_TYPE)(
     replace_all(args, " * ", " *");
     replace_all(ret, "$ARGS", args);
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
+    // replace_all(ret, "$METHOD_COMMENT\n", "");
+    replace_all(ret, "$METHOD_COMMENT", getMethodComment(method));
+    // std::cout << "comment :\n";
+    // std::cout <<  getMethodComment(method) << std::endl;
     replace_all(ret, "$NAME", method->getName());
     return ret;
 }
@@ -596,6 +607,7 @@ std::string MsgBoxInfGenerator::getStubMethodRegisterSignature(const std::shared
     if (!method)
         return "";
 
+    // method->getComment();
     std::string ret = R"(
 /**
  * Register stub function for method $NAME.
@@ -653,7 +665,9 @@ int32_t (*reply_$NAME)(
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " *" + a->getName());
         else
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " " + a->getName());
-        comments.emplace_back(replace_all(" * @param $ARG_NAME The output argument of method $NAME.", "$ARG_NAME", a->getName()));
+        std::string commentTpl = " * @param $ARG_NAME The output argument of method $NAME.";
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // comments.emplace_back(replace_all(" * @param $ARG_NAME The output argument of method $NAME.", "$ARG_NAME", a->getName()));
     }
     if (auto ptr = method->getErrorType())
     {
@@ -847,7 +861,7 @@ std::string MsgBoxInfGenerator::getStubBroadcastSignature(const std::shared_ptr<
 
     std::string ret = R"(/**
  * Send broadcast $NAME to all subscribers.
- *
+$BROADCAST_COMMENT
 $ARG_COMMENT
  */
 int32_t (*$NAME)($ARGS);
@@ -877,7 +891,9 @@ int32_t (*register_$NAME_unsubcribed)(broadcast_sub_t func);
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " *" + a->getName());
         else    
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " " + a->getName());
-        comments.emplace_back(replace_all(" * @param $ARG_NAME The output argument of broadcast $NAME.", "$ARG_NAME", a->getName()));
+        std::string commentTpl(" * @param $ARG_NAME The output argument of broadcast $NAME.");
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // comments.emplace_back(replace_all(" * @param $ARG_NAME The output argument of broadcast $NAME.", "$ARG_NAME", a->getName()));
     }
     if (broadcast->isSelective())
     {
@@ -888,6 +904,7 @@ int32_t (*register_$NAME_unsubcribed)(broadcast_sub_t func);
     }
     replace_all(ret, "$ARGS", join(arg_list, ", "));
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
+    replace_all(ret, "$BROADCAST_COMMENT", getBroadcastComment(broadcast));
     replace_all(ret, "$NAME", broadcast->getName());
 
     return ret;
@@ -1123,6 +1140,171 @@ std::string MsgBoxInfGenerator::getBroadcastCmds(const std::shared_ptr<FDBroadca
     return ret;
 }
 
+std::string MsgBoxInfGenerator::getStubRegistryMapTpl()
+{
+    std::string ret;
+    if (m_bNotUseSwitchCase)
+        ret = R"(
+static int32_t export_registry_map(uint8_t *reg_map, const size_t size, size_t *require_size)
+{
+	int32_t ret = 0;
+	int32_t exp_size = 0;
+	int32_t size_cnt = 0;
+
+	if (!reg_map)
+		return -1;
+
+	// get all broadcast subscribed registry map size
+	$GET_ALL_SUB_SIZE
+
+	*require_size = size_cnt * IPC_REG_MAP_BLOCK_SIZE;
+	if (size < *require_size) {
+		return -ERR_APP_EXPORT_REG_MAP_SIZE_ERR;
+	}
+
+	// export all broadcast subscribed registry map into reg_map
+    $EXP_ALL_BROADCASTS_REG
+
+	return ret;
+}
+
+static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
+{
+	int32_t ret = 0;
+	uint8_t cmd = 0;
+	uint32_t idx = 0;
+	uint8_t pid, fid, sid;
+	int32_t ret_size = 0;
+	uint32_t pos = 0;
+
+	if (!reg_map || size == 0 || (size % IPC_REG_MAP_BLOCK_SIZE != 0))
+		return -1;
+
+	for(idx = 0; idx < size / IPC_REG_MAP_BLOCK_SIZE; ++idx) {
+		des_registry(reg_map, &pos, &pid, &fid, &sid, &cmd);
+		IPC_LOG_INFO("%s pid %x fid %x sid %x cmd %x", __func__, pid, fid, sid, cmd);
+
+		// add all registry info in broadcast entries
+        $BROADCAST_REG_CASE
+	}
+
+	return (ret_size * IPC_REG_MAP_BLOCK_SIZE);
+})";
+    else
+        ret = R"(
+static int32_t export_registry_map(uint8_t *reg_map, const size_t size, size_t *require_size)
+{
+	int32_t ret = 0;
+	int32_t exp_size = 0;
+	int32_t size_cnt = 0;
+
+	if (!reg_map)
+		return -1;
+
+	// get all broadcast subscribed registry map size
+	$GET_ALL_SUB_SIZE
+
+	*require_size = size_cnt * IPC_REG_MAP_BLOCK_SIZE;
+	if (size < *require_size) {
+		return -ERR_APP_EXPORT_REG_MAP_SIZE_ERR;
+	}
+
+	// export all broadcast subscribed registry map into reg_map
+    $EXP_ALL_BROADCASTS_REG
+
+	return ret;
+}
+
+static int32_t load_registry_map(uint8_t *reg_map, const size_t size)
+{
+	int32_t ret = 0;
+	uint8_t cmd = 0;
+	uint32_t idx = 0;
+	uint8_t pid, fid, sid;
+	int32_t ret_size = 0;
+	uint32_t pos = 0;
+
+	if (!reg_map || size == 0 || (size % IPC_REG_MAP_BLOCK_SIZE != 0))
+		return -1;
+
+	for(idx = 0; idx < size / IPC_REG_MAP_BLOCK_SIZE; ++idx) {
+		des_registry(reg_map, &pos, &pid, &fid, &sid, &cmd);
+		IPC_LOG_INFO("%s pid %x fid %x sid %x cmd %x", __func__, pid, fid, sid, cmd);
+
+		// add all registry info in broadcast entries
+        switch (cmd) {
+        $BROADCAST_REG_CASE
+        default:
+            break;
+        }
+	}
+
+	return (ret_size * IPC_REG_MAP_BLOCK_SIZE);
+})";
+    return ret;
+}
+
+std::string MsgBoxInfGenerator::getStubBroadcastSubscribedSize(const std::shared_ptr<FBroadcast> &broadcast)
+{
+    if (!broadcast)
+        return "";
+
+    std::string ret( R"(size_cnt += get_subscribed_size(s_ext->$NAME_registry.entries);
+)");
+
+    replace_all(ret, "\n", "\n\t");
+    replace_all(ret, "$NAME", broadcast->getName());
+    return ret;
+}
+
+std::string MsgBoxInfGenerator::getStubBroadcastExportRegistry(const std::shared_ptr<FBroadcast> &broadcast)
+{
+    if (!broadcast)
+        return "";
+
+    std::string ret( R"(exp_size = export_registry(s_ext->$NAME_registry.entries, reg_map + (exp_size * IPC_REG_MAP_BLOCK_SIZE), CMD_BROADCAST_$UPPER_NAME);
+if (exp_size < 0)
+	return exp_size;
+ret += exp_size;
+)");
+
+    replace_all(ret, "\n", "\n\t");
+    replace_all(ret, "$UPPER_NAME", toUpper(broadcast->getName()));
+    replace_all(ret, "$NAME", broadcast->getName());
+    return ret;
+}
+
+std::string MsgBoxInfGenerator::getStubBroadcastRegistryCase(const std::shared_ptr<FBroadcast> &broadcast)
+{
+    if (!broadcast)
+        return "";
+
+    std::string ret = getStubBroadcastRegistryCaseTpl();
+    replace_all(ret, "\n", "\n\t\t");
+    replace_all(ret, "$NAME", broadcast->getName());
+    replace_all(ret, "$UPPER_NAME", toUpper(broadcast->getName()));
+    return ret;
+}
+
+std::string MsgBoxInfGenerator::getStubBroadcastRegistryCaseTpl()
+{
+    std::string ret;
+    if (m_bNotUseSwitchCase)
+        ret = R"(if (cmd == CMD_BROADCAST_$UPPER_NAME) {
+	ret = add_registration(&s_ext->$NAME_registry, (uint8_t)pid, (uint8_t)fid, (uint8_t)sid);
+	if (ret == 0)
+		ret_size++;
+}
+)";
+    else
+        ret = R"(case CMD_BROADCAST_$UPPER_NAME :
+	ret = add_registration(&s_ext->$NAME_registry, (uint8_t)pid, (uint8_t)fid, (uint8_t)sid);
+	if (ret == 0)
+		ret_size++;
+)";
+
+    return ret;
+}
 
 std::string MsgBoxInfGenerator::getStubDispatchMessageTpl()
 {
@@ -1417,7 +1599,7 @@ std::string MsgBoxInfGenerator::getProxyMethodAsyncSignature(const std::shared_p
 /**
  * Fire and forget call to the no_reply_method.
  * This is one way method call. The server will NOT return.
- *
+$METHOD_COMMENT
 $ARG_COMMENT
  * @return 0 if success, negative if fail.
  * @note This is unreliable transmission, be used ONLY if message losing is accepted.
@@ -1430,7 +1612,7 @@ int32_t (*$NAME_fire_and_forget)(
         ret = R"(
 /**
  * Asynchronously call the $NAME method.
- *
+$METHOD_COMMENT
 $ARG_COMMENT
  * @param cb The callback function to be called when the method returns.
  * @param ext The user-defined data passed to the method.
@@ -1446,10 +1628,13 @@ int32_t (*$NAME_async)(
     for (const auto &a : method->getInArgs())
     {
         std::string commentTpl = " * @param $ARG_NAME The input argument of method $NAME.";
-        comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // std::string commentTpl = " * @param $ARG_NAME The input argument of method $NAME.";
+        // comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
     }
 
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
+    replace_all(ret, "$METHOD_COMMENT", getMethodComment(method));
     replace_all(ret, "$ARGS", getProxyMethodAsyncArgs(method));
     replace_all(ret, "$NAME", method->getName());
     return ret;
@@ -1464,7 +1649,7 @@ std::string MsgBoxInfGenerator::getProxyMethodSyncSignature(const std::shared_pt
 #ifndef IPC_RTE_BAREMETAL
 /**
  * Synchronously call the hello method.
- *
+$METHOD_COMMENT
 $IN_ARG_COMMENT
 $OUT_ARG_COMMENT
  * @param err The error code returned by the method.
@@ -1481,7 +1666,8 @@ int32_t (*$NAME_sync)(
     for (const auto &a : method->getInArgs())
     {
         std::string commentTpl = " * @param $ARG_NAME The input argument of method $NAME.";
-        comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
     }
     replace_all(ret, "$IN_ARG_COMMENT", join(comments, "\n"));
 
@@ -1489,10 +1675,12 @@ int32_t (*$NAME_sync)(
     for (const auto &a : method->getOutArgs())
     {
         std::string commentTpl = " * @param $ARG_NAME The output argument of method $NAME.";
-        comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
     }
     replace_all(ret, "$OUT_ARG_COMMENT", join(comments, "\n"));
     replace_all(ret, "$ARGS", getProxyMethodSyncArgs(method));
+    replace_all(ret, "$METHOD_COMMENT", getMethodComment(method));
     replace_all(ret, "$NAME", method->getName());
     return ret;
 }
@@ -1551,7 +1739,9 @@ typedef void (*$FULLNAME_callback_t)(
     for (const auto &a : method->getOutArgs())
     {
         std::string commentTpl = " * @param $ARG_NAME The output argument returned by $NAME_async.";
-        comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // std::string commentTpl = " * @param $ARG_NAME The output argument returned by $NAME_async.";
+        // comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
     }
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
     replace_all(ret, "$ARGS", getProxyMethodCallbackArgs(method));
@@ -1867,11 +2057,7 @@ static inline int32_t call_$NAME_callback(serdes_t *des)
     $ERR_DES
     if (ret < 0)
         return -ERR_APP_SERDES;
-    if (err == $INF_UPPER_NAME_NO_ERROR) {
-        $DESERIALIZE
-        if (ret < 0)
-            return -ERR_APP_SERDES;
-    }
+    $OUT_ARGS_DES
 
     // call callback function
     cb = ($FULLNAME_callback_t)(reg->cb);
@@ -1911,10 +2097,19 @@ static inline int32_t call_$NAME_callback(serdes_t *des)
     }
     cb_call_arg_list.emplace_back("reg->ext");
     cb_call_arg_list.emplace_back("&data->info");
-    trim(des);
-    replace_all(des, "\n", "\n\t\t");
+    if (!des.empty())
+    {
+        std::string out_des(R"(if (err == $INF_UPPER_NAME_NO_ERROR) {
+        $DESERIALIZE
+        if (ret < 0)
+            return -ERR_APP_SERDES;
+    })");
+        trim(des);
+        replace_all(des, "\n", "\n\t\t");
+        des = replace_all(out_des, "$DESERIALIZE", des);
+    }
     replace_all(initvars, "\n", "\n\t");
-    replace_all(ret, "$DESERIALIZE", des);
+    replace_all(ret, "$OUT_ARGS_DES", des);
     replace_all(ret, "$INIT_VARS", initvars);
     replace_all(ret, "$CB_CALL_ARGS", join(cb_call_arg_list, ", "));
     replace_all(ret, "$NAME", method->getName());
@@ -2003,7 +2198,7 @@ std::string MsgBoxInfGenerator::getProxyBroadcastCallbackSignature(const std::sh
 
     std::string ret = R"(/**
  * Callback function for broadcast $NAME.
- *
+$BROADCAST_COMMENT
 $ARG_COMMENT
  * @param ext The user-defined data passed to the method.
  * @param info The extended information, containing uuid and timestamp.
@@ -2023,7 +2218,8 @@ typedef void (*$FULLNAME_callback_t)(
     for (const auto &a : broadcast->getOutArgs())
     {
         std::string commentTpl = " * @param $ARG_NAME The output argument returned by broadcast $NAME.";
-        comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
+        comments.emplace_back(getArgumentComment(a, commentTpl));
+        // comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
         if (isFixedDerived(a->getType()))
             arg_list.emplace_back("const " + Transformer::MsgBoxGen::getTypeName(a->getType()) + " *" + a->getName());
         else
@@ -2034,6 +2230,7 @@ typedef void (*$FULLNAME_callback_t)(
     auto args = join(arg_list, ",\n\t\t\t\t");
     replace_all(args, " * ", " *");
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
+    replace_all(ret, "$BROADCAST_COMMENT", getBroadcastComment(broadcast));
     replace_all(ret, "$ARGS", args);
     replace_all(ret, "$FULLNAME", fullname);
     replace_all(ret, "$NAME", name);
@@ -2633,6 +2830,20 @@ struct _$SERVER_NAME_t {
 	 * @return 0 if success, negative if fail.
 	 */
 	int32_t (*dispatch_request)(serdes_t *des, bool *reply);
+
+	/**
+	 * Export registry map.
+	 *
+	 * @return 0 if success, negative if fail.
+	 */
+	int32_t (*export_registry_map)(uint8_t *reg_map, const size_t size, size_t *require_size);
+
+	/**
+	 * Load registry map.
+	 *
+	 * @return 0 if success, negative if fail.
+	 */
+	int32_t (*load_registry_map)(uint8_t *reg_map, const size_t size);
 };
 #define $SERVER_NAME_t struct _$SERVER_NAME_t
 
@@ -2708,6 +2919,7 @@ static ipc_inf_version_t get_ipc_inf_version(void)
 $METHOD_DEF
 // broadcast
 $BROADCAST_DEF
+$REG_MAP_LOAD_AND_EXPORT
 $DISPATCH_MESSAGE
 // initialize server
 int32_t $SERVER_NAME_init(com_server_data_t *data, $SERVER_NAME_t *server,
@@ -2727,6 +2939,8 @@ int32_t $SERVER_NAME_init(com_server_data_t *data, $SERVER_NAME_t *server,
     server->version = get_ipc_inf_version;
     $METHOD_REG_INIT
     $BROADCAST_REG_INIT
+	server->export_registry_map = export_registry_map;
+	server->load_registry_map = load_registry_map;
     server->dispatch_request = dispatch_request;
 
     return 0;
@@ -2757,6 +2971,68 @@ std::string MsgBoxInfGenerator::getVersionComment()
     replace_all(ret, "$GEN_VER1", gen_ver);
     replace_all(ret, "$GEN_VER2", COMMIT_HASH2);
     return ret;
+}
+
+std::string MsgBoxInfGenerator::getMethodComment(const std::shared_ptr<BstIdl::FMethod> &element)
+{
+    if (!element || !element->getComment())
+        return " *";
+
+    return generateComments(element, true) + "\n *";
+}
+
+std::string MsgBoxInfGenerator::getBroadcastComment(const std::shared_ptr<BstIdl::FBroadcast> &element)
+{
+    if (!element || !element->getComment())
+        return " *";
+
+    return generateComments(element, true) + "\n *";
+}
+
+std::string MsgBoxInfGenerator::getArgumentComment(const std::shared_ptr<BstIdl::FArgument> &arg, std::string &defaut_comment)
+{
+    if (!arg)
+        return "";
+
+    if (!arg->getComment())
+        return replace_all(defaut_comment, "$ARG_NAME", arg->getName());
+    return generateComments(arg, true);
+}
+
+std::string MsgBoxInfGenerator::generateComments(const std::shared_ptr<BstIdl::FModelElement> &model, bool inline_)
+{
+    std::string intro = "";
+    std::string tail = "";
+    std::list<std::string> annoCommentText;
+    // std::string annoCommentText = "";
+    if (model != nullptr && model->getComment() != nullptr)
+    {
+        if (!inline_)
+        {
+            intro = "/*\n";
+            tail = " */\n";
+        }
+        for (auto annoComment : model->getComment()->getElements())
+        {
+            if (annoComment != nullptr)
+            {
+                auto type = annoComment->getType();
+                annoCommentText.emplace_back(breaktext(annoComment->getComment(), type));
+                // std::cout << "annoComment : \n" << breaktext(annoComment->getComment(), type) << std::endl;
+                // std::cout << "annoComment1 : \n" << join(annoCommentText, "\n") << std::endl;
+            }
+        }
+        return intro + replace_all(join(annoCommentText, "\n"), "$PARAM_NAME", model->getName()) + tail;
+    }
+    return "";
+}
+
+std::string MsgBoxInfGenerator::breaktext(std::string text, const BstIdl::FAnnotationType &annotation)
+{
+    std::string commentText;
+    annotation.getLiteral() == "@param" ? commentText = " * " + annotation.getLiteral() + " $PARAM_NAME " + toFirstUpper(text) : commentText = " * " + annotation.getLiteral() + ":\n" + text;
+    commentText = " " + simplify(replace_all(commentText, "\r\n", "\n"));
+    return replace_all(commentText, "\n", "\n * ");
 }
 
 bool MsgBoxInfGenerator::isFixedDerived(const std::shared_ptr<FTypeRef> &type)
