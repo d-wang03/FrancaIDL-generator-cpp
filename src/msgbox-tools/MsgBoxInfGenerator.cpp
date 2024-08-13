@@ -902,7 +902,7 @@ int32_t (*register_$NAME_unsubcribed)(broadcast_sub_t func);
         arg_list.emplace_back("uint32_t size");
         comments.emplace_back(" * @param size The size of the entries.");
     }
-    replace_all(ret, "$ARGS", join(arg_list, ", "));
+    replace_all(ret, "$ARGS", arg_list.empty() ? "void" : join(arg_list, ", "));
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
     replace_all(ret, "$BROADCAST_COMMENT", getBroadcastComment(broadcast));
     replace_all(ret, "$NAME", broadcast->getName());
@@ -1005,7 +1005,7 @@ static int32_t $NAME($ARGS)
     replace_all(ret, "$UPPER_NAME", toUpper(name));
     replace_all(ser, "\n", "\n\t");
     replace_all(ret, "$SERIALIZE", ser);
-    replace_all(ret, "$ARGS", join(arg_list, ", "));
+    replace_all(ret, "$ARGS", arg_list.empty() ? "void" : join(arg_list, ", "));
     return ret;
 }
 
@@ -1522,6 +1522,7 @@ std::string MsgBoxInfGenerator::getProxyMethodAsyncArgs(const std::shared_ptr<FM
     }
     auto ret = join(arg_list, ",\n\t\t\t\t");
     replace_all(ret, " * ", " *");
+
     return ret;
 }
 
@@ -1623,13 +1624,12 @@ int32_t (*$NAME_async)(
     {
         std::string commentTpl = " * @param $ARG_NAME The input argument of method $NAME.";
         comments.emplace_back(getArgumentComment(a, commentTpl));
-        // std::string commentTpl = " * @param $ARG_NAME The input argument of method $NAME.";
-        // comments.emplace_back(replace_all(commentTpl, "$ARG_NAME", a->getName()));
     }
 
     replace_all(ret, "$ARG_COMMENT", join(comments, "\n"));
     replace_all(ret, "$METHOD_COMMENT", getMethodComment(method));
-    replace_all(ret, "$ARGS", getProxyMethodAsyncArgs(method));
+    auto args = getProxyMethodAsyncArgs(method);
+    replace_all(ret, "$ARGS", args.empty() ? "void" : args);
     replace_all(ret, "$NAME", method->getName());
     return ret;
 }
@@ -1990,7 +1990,7 @@ static int32_t call_$NAME_fire_and_forget($ARGS)
 }
 )";
 
-    replace_all(ret, "$ARGS", getProxyMethodAsyncArgs(method));
+    replace_all(ret, "$ARGS", method->getInArgs().empty() ? "void" : getProxyMethodAsyncArgs(method));
     replace_all(ret, "$SERIALIZE_CALL", getProxyMethodSerializeCallStr(method));
     replace_all(ret, "$NAME", method->getName());
     replace_all(ret, "$UPPER_NAME", toUpper(method->getName()));
