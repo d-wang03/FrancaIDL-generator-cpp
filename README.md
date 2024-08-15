@@ -47,8 +47,8 @@ BST IDL Code Generator
     *    org.franca.core 0.12.0.1
     *    org.genivi.commonapi.core 3.2.0
     *    org.genivi.commonapi.someip 3.2.0.1
-    *    com.bst.ipc.deployment (Message Box) 1.2.0
-    *    commit hash 88fa1aa
+    *    com.bst.ipc.deployment (Message Box) 1.3.0
+    *    commit hash 20bed9c
     ```
 3. 运行指令：
     ```

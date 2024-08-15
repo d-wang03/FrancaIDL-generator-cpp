@@ -22,7 +22,7 @@
 namespace BstIdl
 {
 
-#define MSG_BOX_VERSION "1.2.0"
+#define MSG_BOX_VERSION "1.3.0"
 
 class MsgBoxGenerator : public AbstractGenerator
 {
