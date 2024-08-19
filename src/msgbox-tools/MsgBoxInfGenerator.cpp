@@ -259,8 +259,8 @@ bool MsgBoxInfGenerator::validate(bool checkDstEndID)
     if (!m_bEnableSection)
     {
         // 设置为默认值
-        m_maxMethodNum = 255;
-        m_maxBroadcastNum = 255;
+        m_maxMethodNum = 256;
+        m_maxBroadcastNum = 256;
         minSubscribeID = 0;
     }
     else

@@ -43,7 +43,7 @@ specification com.bst.ipc.deployment{
     }
     for interfaces {
         //是否将参数MaxMethodNum与MaxBroadcastNum作为ID有效值检查的条件，默认为true。
-        //为false时，MethodID及BroadcastID有效范围为0-254
+        //为false时，MethodID及BroadcastID有效范围为0-255
         EnableSection : Boolean (default : true);
         //最大支持的Method数量
         MaxMethodNum : UInt8 (default : 255);
@@ -52,16 +52,18 @@ specification com.bst.ipc.deployment{
     }
     
     for methods {
-        //该Method对应的CMD值。范围为0-(MaxMethodNum - 1)。
-        //需要保证在同一个server内, MethodID值唯一。
-        //注意： 255被固定用于初始化消息，不可占用。
+        //该Method对应的CMD值。
+        //EnableSection = true时，范围为0-(MaxMethodNum - 1)，否则为0-255
+        //需要保证在同一个End内, MethodID值唯一。
         MethodID : UInt8;
     }
     
     for broadcasts {
-        //broadcast的订阅方法ID，与MethodID统一编号，范围为0-MaxMethodNum
+        //broadcast的订阅方法ID，与MethodID统一编号
+        //EnableSection = true时，范围为MaxMethodNum-255，否则为0-255
         SubscribeMethodID : UInt8;
-        //broadcast的订阅方法ID，与MethodID统一编号，范围为0-MaxMethodNum
+        //broadcast的订阅方法ID，与MethodID统一编号
+        //EnableSection = true时，范围为MaxMethodNum-255，否则为0-255
         UnsubscribeMethodID : UInt8;
         //broadcast对应的CMD值，独立编号，范围为0-MaxBroadcastNum 
         BroadcastID : UInt8;
