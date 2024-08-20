@@ -456,7 +456,7 @@ static inline std::string serdesFTypeRef(FTypeRef *type)
 
 static inline std::string serdesFTypeDef(FTypeDef *type)
 {
-    if (!type || !type->getActualType())
+    if (!type || !type->getActualType() || type->getActualType()->getPredefined())
         return "";
 
     std::string ret = R"(/**
@@ -491,16 +491,8 @@ static inline int32_t deserialize_$NAME(
 )";
     if (isFixed(type) == "true")
         replace_one(ret, "$TYPENAME *out)", "$TYPENAME **out)");
-    std::string ele_name;
     auto ele_type = type->getActualType();
-    auto pred = ele_type->getPredefined();
-    if (pred && pred->getValue() == BstIdl::FBasicTypeId::STRING)
-        ele_name = "string";
-    else if(pred && pred->getValue() == BstIdl::FBasicTypeId::BYTE_BUFFER)
-        ele_name = "byte_buffer";
-    else
-        ele_name = remove_last(getTypeName(ele_type), 2);
-
+    std::string ele_name = remove_last(getTypeName(ele_type), 2);
     replace_all(ret, "$ELE_NAME", ele_name);
     replace_all(ret, "$TYPENAME", getTypeName(type));
     replace_all(ret, "$NAME", remove_last(getTypeName(type), 2));

@@ -176,6 +176,8 @@ static inline std::string serializeFTypeDef(FTypeDef *type)
 {
     if (!type || !type->getActualType())
         return "";
+    if (auto pred = type->getActualType()->getPredefined())
+        return pred->transform("baremetal_serialize");
 
     std::string ret = R"(if (ret >= 0)
     ret = serialize_$TYPE(ser, &$NAME);

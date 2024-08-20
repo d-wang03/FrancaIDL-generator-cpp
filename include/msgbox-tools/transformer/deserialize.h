@@ -173,6 +173,8 @@ static inline std::string deserializeFTypeDef(FTypeDef *type)
 {
     if (!type || !type->getActualType())
         return "";
+    if (auto pred = type->getActualType()->getPredefined())
+        return pred->transform("baremetal_deserialize");
 
     std::string ret = R"(if (ret >= 0)
     ret = deserialize_$TYPENAME(buf, &$NAME);
