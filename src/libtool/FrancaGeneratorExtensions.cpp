@@ -914,10 +914,7 @@ std::string FrancaGeneratorExtensions::getElementName(const std::shared_ptr<FMod
         if (myContainer == otherContainer)
         {
             std::string name = getContainerName(_me);
-            if (_isOther)
-            {
-                name = getContainerName(myContainer) + "::" + getContainerName(_me);
-            }
+            name = getContainerName(myContainer) + "::" + getContainerName(_me);
             return name;
         }
         if (getCommonContainer(myContainer, otherContainer) != nullptr)
@@ -1051,7 +1048,7 @@ std::string FrancaGeneratorExtensions::generateGetMethodDefinition(const std::sh
 std::string FrancaGeneratorExtensions::generateSetMethodDefinition(const std::shared_ptr<FAttribute> &fAttribute)
 {
     std::string type = getTypeName(fAttribute, fAttribute, false) + " &";
-    fAttribute->isArray() ? type.pop_back(), type.append("const") : type = "const " + type;
+    fAttribute->isArray() ? type.pop_back(), type.append("const ") : type = "const " + type;
     auto definition = "void set" + getClassName(fAttribute) + "(" + type + fAttribute->getName() + "_)";
     return definition;
 }
@@ -1171,11 +1168,7 @@ std::string FrancaGeneratorExtensions::generateGetMethodImpl(const std::shared_p
                                                              std::string className)
 {
     std::string definition("const ");
-    if (fAttribute->getType()->getDerived() != nullptr)
-        definition.append(std::dynamic_pointer_cast<BstIdl::FInterface>(fAttribute->getContainer())->getName() +
-                          "::" + getTypeName(fAttribute, fAttribute, false));
-    else
-        definition.append(getTypeName(fAttribute, fAttribute, false));
+    definition.append(getTypeName(fAttribute, fAttribute, false));
     fAttribute->isArray() ? definition.append(" ") : definition.append(" &");
     definition = definition + className + "::get" + getClassName(fAttribute) + "() const";
     return definition;
@@ -1185,7 +1178,7 @@ std::string FrancaGeneratorExtensions::generateSetMethodImpl(const std::shared_p
                                                              std::string className)
 {
     auto type = getTypeName(fAttribute, fAttribute, false) + " &";
-    fAttribute->isArray() ? type.pop_back(), type.append("const") : type = "const " + type;
+    fAttribute->isArray() ? type.pop_back(), type.append("const ") : type = "const " + type;
     auto definition =
         "void " + className + "::set" + getClassName(fAttribute) + "(" + type + fAttribute->getName() + "_)";
     return definition;
