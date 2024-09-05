@@ -21,7 +21,7 @@ specification com.bst.ipc.deployment{
         // provider类型，Client或者Server
         ProviderType : {Client, Server};
         //生成代码的运行环境，类型为枚举，默认为Posix。
-        RTE : { Posix, BareMetal, LinuxKernel } (default : Posix);
+        RTE : { Posix, BareMetal, LinuxKernel, RTOS} (default : Posix);
         //该server或client对应的msgEnd ID。
         SrcEndID : { CPU_0,CPU_1, CPU_2, CPU_3, CPU_4, CPU_5, CPU_6, CPU_7, CPUMP2_0, CPUMP2_1, ISPCV_0, ISPCV_1, ISPCV_2, ISPCV_3, ISPCV_4, NET_0, DMA_0, DMA_1, SWITCH_0, SWITCH_1, SWITCH_2, SWITCH_3, SWITCH_4, SWITCH_5, SECURE_0, SECURE_1, SAFETY_0, SAFETY_1, REALTIME_0, REALTIME_1, REALTIME_2, REALTIME_3, REALTIME_4, REALTIME_5, MEDIA_0};
         //过滤器ID，静态配置消息分发所属的过滤器

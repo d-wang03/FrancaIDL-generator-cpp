@@ -69,6 +69,8 @@ bool MsgBoxGenerator::generate()
                     rtestr = "IPC_RTE_POSIX";
                 else if (m_rte == "LinuxKernel")
                     rtestr = "IPC_RTE_KERNEL";
+                else if (m_rte == "RTOS")
+                    rtestr = "IPC_RTE_RTOS";
                 else
                 {
                     CERR << "Unknown RTE : " << m_rte << ENDL;
@@ -190,7 +192,7 @@ bool MsgBoxGenerator::validateProvider(const std::shared_ptr<FDExtensionRoot> &p
         return false;
     }
     m_rte = type->getName();
-    if (m_rte != "BareMetal" && m_rte != "Posix" && m_rte != "LinuxKernel")
+    if (m_rte != "BareMetal" && m_rte != "Posix" && m_rte != "LinuxKernel" && m_rte != "RTOS")
     {
         CERR << "Invalid RTE." << ENDL;
         return false;
@@ -482,12 +484,12 @@ $INS_SVR_CASES
 #if defined IPC_RTE_KERNEL
 static int router_func(void *arg)
 #else
-static void *router_func(void *arg)
+static void router_func(void *arg)
 #endif
 {
 	int32_t ret = 0;
 
-#if defined IPC_RTE_POSIX
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
 	while (s_ins && s_ins->com_data.bRunning) {
 #elif defined IPC_RTE_KERNEL
 	while (unlikely(!kthread_should_stop())) {
@@ -503,14 +505,14 @@ static void *router_func(void *arg)
 #if defined IPC_RTE_KERNEL
 	return RESULT_SUCCESS;
 #else
-	return arg;
+	return;
 #endif
 }
 
 // start message router
 static int32_t start(void)
 {
-#if defined IPC_RTE_POSIX
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
 	int32_t ret = 0;
 #endif
 	com_server_data_t *data = &s_ins->com_data;
@@ -522,8 +524,8 @@ static int32_t start(void)
 		return RESULT_SUCCESS;
 
 	data->bRunning = true;
-#if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
@@ -549,13 +551,11 @@ static int32_t stop(void)
 		return RESULT_SUCCESS;
 
 	//sleep 1 seconds.
-#if defined IPC_RTE_POSIX
-	sleep(1);
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+	Msleep(1);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = pthread_join(data->route_task, NULL);
-	if (ret != 0)
-		return -ERR_APP_STOP;
+    TaskDelete(router_func);
 #elif defined IPC_RTE_KERNEL
 	msleep(1000);
 	if (likely(data->route_task)) {
@@ -902,12 +902,12 @@ static int32_t dispatch_message(void)
 #if defined IPC_RTE_KERNEL
 static int router_func(void *arg)
 #else
-static void *router_func(void *arg)
+static void router_func(void *arg)
 #endif
 {
 	int32_t ret = 0;
 
-#if defined IPC_RTE_POSIX
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
 	while (s_ins && s_ins->com_data.bRunning) {
 #elif defined IPC_RTE_KERNEL
 	while (unlikely(!kthread_should_stop())) {
@@ -923,14 +923,14 @@ static void *router_func(void *arg)
 #if defined IPC_RTE_KERNEL
 	return RESULT_SUCCESS;
 #else
-	return arg;
+	return;
 #endif
 }
 
 // start message router
 static int32_t start(void)
 {
-#if defined IPC_RTE_POSIX
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
 	int32_t ret = 0;
 #endif
 	com_client_data_t *data = &s_ins->com_data;
@@ -942,8 +942,8 @@ static int32_t start(void)
 		return RESULT_SUCCESS;
 
 	data->bRunning = true;
-#if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
@@ -969,13 +969,11 @@ static int32_t stop(void)
 		return RESULT_SUCCESS;
 
 	//sleep 1 seconds.
-#if defined IPC_RTE_POSIX
-	sleep(1);
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+	Msleep(1);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = pthread_join(data->route_task, NULL);
-	if (ret != 0)
-		return -ERR_APP_STOP;
+    TaskDelete(router_func);
 #elif defined IPC_RTE_KERNEL
 	msleep(1000);
 	if (likely(data->route_task)) {
