@@ -2554,7 +2554,6 @@ static inline int32_t dispatch_broadcast(serdes_t *des)
 		return -ERR_APP_PARAM;
 
     $BROADCAST_CASES
-    IPC_LOG_ERR("unknown broadcast message %d.\n", des->header.cmd);
 
 	return -ERR_APP_UNKNOWN_CMD;
 }
@@ -2570,7 +2569,6 @@ static inline int32_t dispatch_reply(serdes_t *des)
 
     $METHOD_REPLY_CASES
     $BROADCAST_REPLY_CASES
-    IPC_LOG_ERR("unknown reply message %d.\n", des->header.cmd);
 
 	return -ERR_APP_UNKNOWN_CMD;
 }
@@ -2588,7 +2586,6 @@ static inline int32_t dispatch_broadcast(serdes_t *des)
 	$BROADCAST_CASES
 	default:
         ret = -ERR_APP_UNKNOWN_CMD;
-        IPC_LOG_ERR("unknown broadcast message %d.\n", des->header.cmd);
 		break;
 	}
 
@@ -2609,7 +2606,6 @@ static inline int32_t dispatch_reply(serdes_t *des)
     $BROADCAST_REPLY_CASES
     default:
         ret = -ERR_APP_UNKNOWN_CMD;
-        IPC_LOG_ERR("unknown reply message %d.\n", des->header.cmd);
 		break;
 	}
 

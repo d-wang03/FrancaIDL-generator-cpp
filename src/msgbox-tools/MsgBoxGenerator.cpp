@@ -644,7 +644,7 @@ $INS_DESTROY
     std::string serverInits;
     std::string insDestroy;
 
-    std::string caseTpl = R"(       ret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);
+    std::string caseTpl = R"(        ret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);
         if (ret < 0)
             IPC_LOG_ERR("$NAME_server dispatch request failed %d.\n", ret);
 )";
@@ -884,13 +884,13 @@ static int32_t dispatch_message(void)
 		if (ipc_trans_layer_proxy_get_broadcast_msg(data->pid, data->handle, des) >= 0) {
 			has_message = true;
             $INS_CASES1
-			else
+			if (ret < 0)
 				IPC_LOG_ERR("Unexpected broadcast message from ID %d.\n", des->header.pid);
 		}
 		if (ipc_trans_layer_proxy_get_reply_msg(data->pid, data->handle, des) >= 0) {
 			has_message = true;
             $INS_CASES2
-			else
+			if (ret < 0)
 				IPC_LOG_ERR("Unexpected reply message from ID %d.\n", des->header.pid);
 		}
 		if (!has_message)
@@ -1060,7 +1060,7 @@ $INS_DESTROY
     std::string insInits;
     std::string insDestroy;
 
-    std::string caseTpl = R"(			else if (des->header.pid == s_ins->$NAME_ext.cid)
+    std::string caseTpl = R"(			if (des->header.pid == s_ins->$NAME_ext.cid)
 				ret = s_ins->client.$NAME_client.dispatch_broadcast(des);
 )";
     std::string initTpl = R"(	ret = $NAME_client_init(data, &ins->client.$NAME_client, &ins->$NAME_ext);
@@ -1083,7 +1083,6 @@ $INS_DESTROY
         replace_all(dtor, "$NAME", e);
         insDestroy.append(dtor);
     }
-    replace_one(insCases, "else if", "if");
     trim(insCases);
 
     if (m_infs.size() == 1)
