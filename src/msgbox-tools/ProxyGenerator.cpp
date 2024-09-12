@@ -59,7 +59,6 @@ bool ProxyGenerator::generateHeader()
 
     replace_all(content, "$LICENSE", getLicense());
     replace_all(content, "$VERSION_COMMENT", getVersionComment());
-    replace_all(content, "$RTE_DEFINE", m_rtestr);
     replace_all(content, "$INF_NAME", m_infName);
     replace_all(content, "$CLIENT_NAME", clientName);
     replace_all(content, "$HEADER_MACRO", headerMacro);

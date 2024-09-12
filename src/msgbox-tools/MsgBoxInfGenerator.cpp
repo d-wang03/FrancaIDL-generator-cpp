@@ -97,6 +97,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+$RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_common.h>
 #else
@@ -125,6 +126,7 @@ $TYPE_SERDES_FUNC
 
     std::string typeName = m_infName + "_datatype" ;
     std::string headerMacro = toUpper(typeName) + "_H";
+    std::string rte_tpl("#define $RTE_STR\n");
     std::string typesDecl;
     std::string constantDecl;
     std::string serdesFunc;
@@ -154,6 +156,10 @@ $TYPE_SERDES_FUNC
     replace_all(content, "$LICENSE", getLicense());
     replace_all(content, "$VERSION_COMMENT", getVersionComment());
     replace_all(content, "$HEADER_MACRO", headerMacro);
+    if (m_rtestr == "IPC_RTE_RTOS")
+        rte_tpl.append("#undef IPC_RTE_BAREMETAL\n");
+    replace_all(rte_tpl, "$RTE_STR", m_rtestr);
+    replace_all(content, "$RTE_DEFINE", rte_tpl);
     replace_all(content, "$TYPES_DECL", typesDecl);
     replace_all(content, "$CONSTANT_DECL", constantDecl);
     replace_all(content, "$TYPE_SERDES_FUNC", serdesFunc);
@@ -2624,7 +2630,6 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
-#define $RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_client_utils.h>
 #else
@@ -2791,7 +2796,6 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
-#define $RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_svr_utils.h>
 #else

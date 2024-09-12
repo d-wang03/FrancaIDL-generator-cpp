@@ -102,7 +102,6 @@ $SERVER_NAME_t *$SERVER_NAME_init($SERVER_NAME_data_t *data);)");
 
     replace_all(content, "$LICENSE", getLicense());
     replace_all(content, "$VERSION_COMMENT", getVersionComment());
-    replace_all(content, "$RTE_DEFINE", m_rtestr);
     replace_all(content, "$INF_NAME", m_infName);
     replace_all(content, "$SERVER_NAME", serverName);
     replace_all(content, "$HEADER_MACRO", headerMacro);
