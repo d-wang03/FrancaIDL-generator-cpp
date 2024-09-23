@@ -180,7 +180,6 @@ bool ProxyGenerator::generateSource()
     replace_all(content, "$BROADCAST_REG_INIT", broadcastInits);
     replace_all(content, "$BROADCAST_DESTROY", broadcastDtors);
     replace_all(content, "$VERSION", getVersionString());
-    replace_all(content, "$INF_UPPER_NAME", toUpper(m_infName));
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");

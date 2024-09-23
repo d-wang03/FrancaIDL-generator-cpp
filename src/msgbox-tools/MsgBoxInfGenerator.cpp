@@ -104,6 +104,17 @@ $RTE_DEFINE
 #include "ipc_app_common.h"
 #endif
 
+#if __has_include(<inttypes.h>)
+  #include <inttypes.h>
+#else
+#ifndef PRId32
+#define PRId32 "d"
+#endif
+#ifndef PRIu8
+#define PRIu8 "u"
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1486,7 +1497,7 @@ static $REPLY_FUNC
 		ret = send_reply(data, ser);
 
 	if (ret < 0) {
-		IPC_LOG_ERR("send reply fail %d.\n", ret);
+		IPC_LOG_ERR("send reply fail %" PRId32 ".\n", ret);
 		return ret;
 	}
 
@@ -1847,7 +1858,7 @@ static int32_t call_$NAME_sync($ARGS)
 	ret = send_request(data, ser, s_ext->cid, CMD_METHOD_$UPPER_NAME,
                 $NAME_sync_callback, &out, ext_buf);
     if (ret < 0 || ret >= IPC_TOKEN_NUM) {
-        IPC_LOG_ERR("send method fail %d.\n", ret);
+        IPC_LOG_ERR("send method fail %" PRId32 ".\n", ret);
         return ret;
     }
 
@@ -1926,7 +1937,7 @@ static int32_t call_$NAME_async($ARGS)
 	ret = send_request(data, ser, s_ext->cid, CMD_METHOD_$UPPER_NAME,
                 cb, ext, ext_buf);
     if (ret < 0 || ret >= IPC_TOKEN_NUM) {
-        IPC_LOG_ERR("send method fail %d.\n", ret);
+        IPC_LOG_ERR("send method fail %" PRId32 ".\n", ret);
         return ret;
     }
 
@@ -1988,7 +1999,7 @@ static int32_t call_$NAME_fire_and_forget($ARGS)
 	// send request
 	ret = send_fire_and_forget_request(data, ser, s_ext->cid, CMD_METHOD_$UPPER_NAME);
     if (ret < 0) {
-        IPC_LOG_ERR("send method fail %d.\n", ret);
+        IPC_LOG_ERR("send method fail %" PRId32 ".\n", ret);
         return ret;
     }
 
@@ -2074,6 +2085,7 @@ static inline int32_t call_$NAME_callback(serdes_t *des)
 
     std::string des;
     std::string initvars;
+    std::string md_no_err_name;
     std::list<std::string> cb_call_arg_list;
     for (const auto &a : method->getOutArgs())
     {
@@ -2094,16 +2106,20 @@ static inline int32_t call_$NAME_callback(serdes_t *des)
         replace_all(ret, "$ERR_DES", errdes);
         cb_call_arg_list.emplace_back("err");
         initvars.append(BstIdl::Transformer::MsgBoxGen::initVar(errArg));
+        md_no_err_name = BstIdl::Transformer::MsgBoxGen::getTypeName(err->getEnumerators().front());
     }
     cb_call_arg_list.emplace_back("reg->ext");
     cb_call_arg_list.emplace_back("&data->info");
     if (!des.empty())
     {
-        std::string out_des(R"(if (err == $INF_UPPER_NAME_NO_ERROR) {
+        std::string out_des(R"(if (err == $MD_ERR_UPPER_NAME_NO_ERROR) {
         $DESERIALIZE
         if (ret < 0)
             return -ERR_APP_SERDES;
     })");
+        auto eq_pos = md_no_err_name.find_first_of(" ");
+        md_no_err_name = md_no_err_name.substr(0, eq_pos);
+        replace_all(out_des, "$MD_ERR_UPPER_NAME_NO_ERROR", md_no_err_name);
         trim(des);
         replace_all(des, "\n", "\n\t\t");
         des = replace_all(out_des, "$DESERIALIZE", des);
@@ -2331,7 +2347,7 @@ static int32_t subscribe_$NAME(
 	ret = send_request(data, ser, s_ext->cid, CMD_METHOD_SUB_$UPPER_NAME,
                 cb2, ext2, NULL);
     if (ret < 0 || ret >= IPC_TOKEN_NUM) {
-        IPC_LOG_ERR("send fail %d.\n", ret);
+        IPC_LOG_ERR("send fail %" PRId32 ".\n", ret);
         clear_registry(&s_ext->$NAME_registry);
         return ret;
     }
@@ -2369,7 +2385,7 @@ static int32_t unsubscribe_$NAME(broadcast_sub_unsub_callback_t cb, void *ext)
 	ret = send_request(data, ser, s_ext->cid, CMD_METHOD_UNSUB_$UPPER_NAME,
                 cb, ext, NULL);
     if (ret < 0 || ret >= IPC_TOKEN_NUM) {
-        IPC_LOG_ERR("send fail %d.\n", ret);
+        IPC_LOG_ERR("send fail %" PRId32 ".\n", ret);
         return ret;
     }
 

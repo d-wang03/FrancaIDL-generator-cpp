@@ -475,7 +475,7 @@ $INS_SVR_CASES
 			if (ret >= 0)
 				ret = send_reply(data, ser);
 			if (ret < 0)
-				IPC_LOG_ERR("send reply fail %d.\n", ret);
+				IPC_LOG_ERR("send reply fail %" PRId32 ".\n", ret);
 		}
 	}
 	return ret;
@@ -594,7 +594,7 @@ $PROVIDER_NAME_t *$PROVIDER_NAME_init($PROVIDER_NAME_data_t *ins)
                 data->pid, &data->handle);
 	if (ret < 0)
 	{
-		IPC_LOG_ERR("create handle fail %d.\n", ret);
+		IPC_LOG_ERR("create handle fail %" PRId32 ".\n", ret);
 		return NULL;
 	}
 
@@ -640,13 +640,15 @@ $INS_DESTROY
     std::string providerName = provider->getName();
     std::string headerMacro = toUpper(providerName) + "_H";
     std::string includes;
+    std::list<std::string> serverCasesList;
     std::string serverCases;
     std::string serverInits;
     std::string insDestroy;
 
     std::string caseTpl = R"(        ret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);
-        if (ret < 0)
-            IPC_LOG_ERR("$NAME_server dispatch request failed %d.\n", ret);
+)";
+    std::string casesDispatchLogTpl = R"(        if (ret < 0)
+            IPC_LOG_ERR("Server dispatch request failed %" PRId32 ".\n", ret);
 )";
     std::string initTpl = R"(    ret = $NAME_server_init(data, &ins->server.$NAME_server, &ins->$NAME_ext);
 	if (ret < 0) {
@@ -661,7 +663,7 @@ $INS_DESTROY
     {
         std::string svrCase = caseTpl;
         replace_all(svrCase, "$NAME", e);
-        serverCases.append(svrCase);
+        serverCasesList.emplace_back(svrCase);
 
         std::string svrInit = initTpl;
         replace_all(svrInit, "$NAME", e);
@@ -670,6 +672,11 @@ $INS_DESTROY
         std::string dtor = dtorTpl;
         replace_all(dtor, "$NAME", e);
         insDestroy.append(dtor);
+    }
+    if (!serverCasesList.empty())
+    {
+        serverCases = join(serverCasesList, "        if (ret < 0)\n\t");
+        serverCases.append(casesDispatchLogTpl);
     }
 
     // check file
@@ -885,13 +892,13 @@ static int32_t dispatch_message(void)
 			has_message = true;
             $INS_CASES1
 			if (ret < 0)
-				IPC_LOG_ERR("Unexpected broadcast message from ID %d.\n", des->header.pid);
+				IPC_LOG_ERR("Unexpected broadcast message from ID %u.\n", des->header.pid);
 		}
 		if (ipc_trans_layer_proxy_get_reply_msg(data->pid, data->handle, des) >= 0) {
 			has_message = true;
             $INS_CASES2
 			if (ret < 0)
-				IPC_LOG_ERR("Unexpected reply message from ID %d.\n", des->header.pid);
+			    IPC_LOG_ERR("Unexpected reply message from ID %u.\n", des->header.pid);
 		}
 		if (!has_message)
 			break;
@@ -1013,7 +1020,7 @@ $INS_INIT
 	ret = ipc_trans_layer_proxy_create_handle(data->pid, data->fid, data->sid, $DST, &data->handle);
 	if (ret < 0)
 	{
-		IPC_LOG_ERR("create handle fail %d.\n", ret);
+		IPC_LOG_ERR("create handle fail %" PRId32 ".\n", ret);
 		return NULL;
 	}
 
@@ -1090,9 +1097,12 @@ $INS_DESTROY
         std::string dst = "ins->" + m_infs.front() + "_ext.cid";
         replace_all(content, "$DST", dst);
     }
-    else
+    else 
+    {
         replace_all(content, "$DST", "0");
-
+        replace_all(insCases, "_client.dispatch_broadcast(des);\n			if (des->header.pid ",
+                    "_client.dispatch_broadcast(des);\n			if (ret < 0 && des->header.pid ");
+    }
     // check file
     auto filename = m_folderPath + "/" + providerName + ".c";
     if (std::ifstream(filename))
