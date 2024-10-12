@@ -524,7 +524,10 @@ static int32_t start(void)
 		return RESULT_SUCCESS;
 
 	data->bRunning = true;
-#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+#if defined IPC_RTE_POSIX
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+	if (ret != 0) {
+#elif defined IPC_RTE_RTOS
 	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
@@ -550,9 +553,15 @@ static int32_t stop(void)
 	if (!data->bRunning)
 		return RESULT_SUCCESS;
 
-	//sleep 1 seconds.
-#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
-	Msleep(1);
+#if defined IPC_RTE_POSIX
+	sleep(1);
+	data->bRunning = false;
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
+	ret = pthread_join(data->route_task, NULL);
+	if (ret != 0)
+		return -ERR_APP_STOP;
+#elif defined IPC_RTE_RTOS
+	Msleep(1000);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
     TaskDelete(router_func);
@@ -949,7 +958,10 @@ static int32_t start(void)
 		return RESULT_SUCCESS;
 
 	data->bRunning = true;
-#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+#if defined IPC_RTE_POSIX
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+	if (ret != 0) {
+#if defined IPC_RTE_RTOS
 	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
@@ -975,9 +987,15 @@ static int32_t stop(void)
 	if (!data->bRunning)
 		return RESULT_SUCCESS;
 
-	//sleep 1 seconds.
-#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
-	Msleep(1);
+#if defined IPC_RTE_POSIX
+	sleep(1);
+	data->bRunning = false;
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
+	ret = pthread_join(data->route_task, NULL);
+	if (ret != 0)
+		return -ERR_APP_STOP;
+#elif defined IPC_RTE_RTOS
+	Msleep(1000);
 	data->bRunning = false;
 	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
     TaskDelete(router_func);
