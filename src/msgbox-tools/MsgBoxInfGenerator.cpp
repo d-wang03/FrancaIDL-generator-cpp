@@ -2658,6 +2658,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+#define $RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_client_utils.h>
 #else
@@ -2740,6 +2741,8 @@ void $CLIENT_NAME_destroy(void);
 
 #endif // $HEADER_MACRO
 )";
+
+    replace_all(ret, "$RTE_DEFINE", m_rtestr);
     return ret;
 }
 
@@ -2824,6 +2827,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+#define $RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_svr_utils.h>
 #else
@@ -2904,6 +2908,7 @@ void $SERVER_NAME_destroy(void);
     if (m_bExternDesbuf)
         replace_all(ret, "(*dispatch_request)(serdes_t *des, bool *reply);", "(*dispatch_request)(serdes_t *des, bool *reply, des_buf_t *buf);");
 
+    replace_all(ret, "$RTE_DEFINE", m_rtestr);
     return ret;
 }
 

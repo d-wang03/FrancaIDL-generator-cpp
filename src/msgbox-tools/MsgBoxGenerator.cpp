@@ -86,6 +86,7 @@ bool MsgBoxGenerator::generate()
                         auto gen = std::make_shared<StubGenerator>(m_destDir, m_srcEndID, ins);
                         if (m_isMultiThreadDispatcher && m_rte == "Posix")
                             gen->setExternDesbuf(true);
+                        gen->setRteStr(m_rtestr);
                         ret = gen->generate();
                         m_infs.emplace_back(gen->getInfName());
                         if (ret)
@@ -116,6 +117,7 @@ bool MsgBoxGenerator::generate()
                         auto gen = std::make_shared<ProxyGenerator>(m_destDir, m_srcEndID, ins);
                         if (m_isMultiThreadDispatcher && m_rte == "Posix")
                             gen->setExternDesbuf(true);
+                        gen->setRteStr(m_rtestr);
                         ret = gen->generate();
                         m_infs.emplace_back(gen->getInfName());
                         if (ret)
@@ -395,7 +397,6 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
-#define $RTE_DEFINE
 $INCLUDES
 #ifdef __cplusplus
 extern "C" {
@@ -499,7 +500,6 @@ int32_t $PROVIDER_NAME_destroy(void);
     replace_all(content, "$INS_SERVERS", servers);
     replace_all(content, "$INS_SERVER_EXTS", serverExts);
     replace_all(content, "$PROVIDER_NAME", providerName);
-    replace_all(content, "$RTE_DEFINE", m_rtestr);
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");
