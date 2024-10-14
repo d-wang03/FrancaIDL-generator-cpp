@@ -62,15 +62,14 @@ bool MsgBoxGenerator::generate()
                     CERR << "Error provider deployment." << ENDL;
                     return false;
                 }
-                std::string rtestr;
                 if (m_rte == "BareMetal")
-                    rtestr = "IPC_RTE_BAREMETAL";
+                    m_rtestr = "IPC_RTE_BAREMETAL";
                 else if (m_rte == "Posix")
-                    rtestr = "IPC_RTE_POSIX";
+                    m_rtestr = "IPC_RTE_POSIX";
                 else if (m_rte == "LinuxKernel")
-                    rtestr = "IPC_RTE_KERNEL";
+                    m_rtestr = "IPC_RTE_KERNEL";
                 else if (m_rte == "RTOS")
-                    rtestr = "IPC_RTE_RTOS";
+                    m_rtestr = "IPC_RTE_RTOS";
                 else
                 {
                     CERR << "Unknown RTE : " << m_rte << ENDL;
@@ -85,7 +84,8 @@ bool MsgBoxGenerator::generate()
                         if (!ins || ins->getTag() != "instance")
                             continue;
                         auto gen = std::make_shared<StubGenerator>(m_destDir, m_srcEndID, ins);
-                        gen->setRteStr(rtestr);
+                        if (m_isMultiThreadDispatcher && m_rte == "Posix")
+                            gen->setExternDesbuf(true);
                         ret = gen->generate();
                         m_infs.emplace_back(gen->getInfName());
                         if (ret)
@@ -114,7 +114,8 @@ bool MsgBoxGenerator::generate()
                         if (!ins || ins->getTag() != "instance")
                             continue;
                         auto gen = std::make_shared<ProxyGenerator>(m_destDir, m_srcEndID, ins);
-                        gen->setRteStr(rtestr);
+                        if (m_isMultiThreadDispatcher && m_rte == "Posix")
+                            gen->setExternDesbuf(true);
                         ret = gen->generate();
                         m_infs.emplace_back(gen->getInfName());
                         if (ret)
@@ -287,6 +288,100 @@ bool MsgBoxGenerator::validateProvider(const std::shared_ptr<FDExtensionRoot> &p
         return false;
     }
 
+    // get and validate EnableMultiThreadDispatcher.
+    value = provider->getSingleValue("EnableMultiThreadDispatcher");
+    if (!value)
+        m_isMultiThreadDispatcher = false;
+    else if (value->isBoolean())
+        m_isMultiThreadDispatcher = value->getBoolean();
+
+    if (m_isMultiThreadDispatcher)
+    {
+        // get and validate MethodDispatcherNum.
+        value = provider->getSingleValue("MethodDispatcherNum");
+        if (!value)
+        {
+            CERR << "No MethodDispatcherNum defined." << ENDL;
+            return false;
+        }
+        if (!value->isInteger())
+        {
+            CERR << "Invalid MethodDispatcherNum." << ENDL;
+            return false;
+        }
+        m_methodDispatcherNum = value->getInteger();
+
+        // get and validate MethodDispatcherBufferLength.
+        value = provider->getSingleValue("MethodDispatcherBufferLength");
+        if (!value)
+        {
+            CERR << "No MethodDispatcherBufferLength defined." << ENDL;
+            return false;
+        }
+        if (!value->isInteger())
+        {
+            CERR << "Invalid MethodDispatcherBufferLength." << ENDL;
+            return false;
+        }
+        m_methodDispatcherBufferLength = value->getInteger();
+
+        // get and validate ReplyDispatcherNum.
+        value = provider->getSingleValue("ReplyDispatcherNum");
+        if (!value)
+        {
+            CERR << "No ReplyDispatcherNum defined." << ENDL;
+            return false;
+        }
+        if (!value->isInteger())
+        {
+            CERR << "Invalid ReplyDispatcherNum." << ENDL;
+            return false;
+        }
+        m_replyDispatcherNum = value->getInteger();
+
+        // get and validate ReplyDispatcherBufferLength.
+        value = provider->getSingleValue("ReplyDispatcherBufferLength");
+        if (!value)
+        {
+            CERR << "No ReplyDispatcherBufferLength defined." << ENDL;
+            return false;
+        }
+        if (!value->isInteger())
+        {
+            CERR << "Invalid ReplyDispatcherBufferLength." << ENDL;
+            return false;
+        }
+        m_replyDispatcherBufferLength = value->getInteger();
+
+        // get and validate BroadcastDispatcherNum.
+        value = provider->getSingleValue("BroadcastDispatcherNum");
+        if (!value)
+        {
+            CERR << "No BroadcastDispatcherNum defined." << ENDL;
+            return false;
+        }
+        if (!value->isInteger())
+        {
+            CERR << "Invalid BroadcastDispatcherNum." << ENDL;
+            return false;
+        }
+        m_broadcastDispatcherNum = value->getInteger();
+
+        // get and validate BroadcastDispatcherBufferLength.
+        value = provider->getSingleValue("BroadcastDispatcherBufferLength");
+        if (!value)
+        {
+            CERR << "No BroadcastDispatcherBufferLength defined." << ENDL;
+            return false;
+        }
+        if (!value->isInteger())
+        {
+            CERR << "Invalid BroadcastDispatcherBufferLength." << ENDL;
+            return false;
+        }
+        m_broadcastDispatcherBufferLength = value->getInteger();
+    }
+
     return true;
 }
 
@@ -300,6 +395,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+#define $RTE_DEFINE
 $INCLUDES
 #ifdef __cplusplus
 extern "C" {
@@ -403,6 +499,7 @@ int32_t $PROVIDER_NAME_destroy(void);
     replace_all(content, "$INS_SERVERS", servers);
     replace_all(content, "$INS_SERVER_EXTS", serverExts);
     replace_all(content, "$PROVIDER_NAME", providerName);
+    replace_all(content, "$RTE_DEFINE", m_rtestr);
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");
@@ -433,7 +530,7 @@ $VERSION_COMMENT
 #define PID $PID_VALUE
 #define FID $FID_VALUE
 #define SID $SID_VALUE
-
+$MT_DISPATCHER_DEFS
 static $PROVIDER_NAME_data_t *s_ins = NULL;
 
 // receive messages
@@ -448,136 +545,14 @@ static int32_t receive_message(void)
 }
 
 // dispatch messages
-static int32_t dispatch_message(void)
-{
-	int32_t ret = 0;
-	serdes_t *ser = NULL;
-	serdes_t *des = NULL;
-    com_server_data_t *data = (com_server_data_t *)s_ins;
-
-	if (!data)
-		return -ERR_APP_PARAM;
-	ser = &data->serializer;
-	des = &data->deserializer;
-
-	while (ipc_trans_layer_stub_get_method_msg(data->pid, data->handle, des) >= 0) {
-		bool need_reply = true;
-$INS_SVR_CASES
-		if (need_reply) {
-            (void)ipc_ser_init(ser);
-            ret = ipc_ser_put_32(ser, (uint32_t *)&ret);
-			ser->header = des->header;
-			ser->header.cid = des->header.pid;
-			ser->header.pid = data->pid;
-			ser->header.typ = MSGBX_MSG_TYPE_REPLY;
-			if (ret >= 0)
-				ret = ipc_ser_finish(ser);
-			if (ret >= 0)
-				ret = send_reply(data, ser);
-			if (ret < 0)
-				IPC_LOG_ERR("send reply fail %" PRId32 ".\n", ret);
-		}
-	}
-	return ret;
-}
+$DISPATCH_FUNC
 #ifndef IPC_RTE_BAREMETAL
-#if defined IPC_RTE_KERNEL
-static int router_func(void *arg)
-#else
-static void router_func(void *arg)
-#endif
-{
-	int32_t ret = 0;
-
-#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
-	while (s_ins && s_ins->com_data.bRunning) {
-#elif defined IPC_RTE_KERNEL
-	while (unlikely(!kthread_should_stop())) {
-#endif
-		ret = receive_message();
-		if (ret != 0)
-			continue;
-
-		ret = dispatch_message();
-		if (ret < 0)
-			continue;
-	}
-#if defined IPC_RTE_KERNEL
-	return RESULT_SUCCESS;
-#else
-	return;
-#endif
-}
-
+// router function
+$ROUTER_FUNC
 // start message router
-static int32_t start(void)
-{
-#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
-	int32_t ret = 0;
-#endif
-	com_server_data_t *data = &s_ins->com_data;
-
-	if (!data)
-		return ERR_APP_PARAM;
-
-	if (data->bRunning)
-		return RESULT_SUCCESS;
-
-	data->bRunning = true;
-#if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
-	if (ret != 0) {
-#elif defined IPC_RTE_RTOS
-	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
-	if (ret != 0) {
-#elif defined IPC_RTE_KERNEL
-	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
-	if (unlikely(!data->route_task)) {
-#endif
-		data->bRunning = false;
-		return -ERR_APP_START;
-	}
-
-	return RESULT_SUCCESS;
-}
-
+$START_FUNC
 // stop message router.
-static int32_t stop(void)
-{
-	int32_t ret = 0;
-	com_server_data_t *data = &s_ins->com_data;
-
-	if (!data)
-		return ERR_APP_PARAM;
-
-	if (!data->bRunning)
-		return RESULT_SUCCESS;
-
-#if defined IPC_RTE_POSIX
-	sleep(1);
-	data->bRunning = false;
-	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-	ret = pthread_join(data->route_task, NULL);
-	if (ret != 0)
-		return -ERR_APP_STOP;
-#elif defined IPC_RTE_RTOS
-	Msleep(1000);
-	data->bRunning = false;
-	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-    TaskDelete(router_func);
-#elif defined IPC_RTE_KERNEL
-	msleep(1000);
-	if (likely(data->route_task)) {
-		ipc_trans_layer_release_recv_wait(data->pid, data->handle);
-		ret = kthread_stop(data->route_task);
-		if (unlikely(ret))
-			return -ERR_APP_STOP;
-	}
-	data->bRunning = false;
-#endif
-
-	return RESULT_SUCCESS;
-}
+$STOP_FUNC
 #endif
 // $PROVIDER_NAME_init
 $PROVIDER_NAME_t *$PROVIDER_NAME_init($PROVIDER_NAME_data_t *ins)
@@ -654,8 +629,342 @@ $INS_DESTROY
     std::string serverInits;
     std::string insDestroy;
 
-    std::string caseTpl = R"(        ret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);
+    std::string mtDefs;
+    std::string dispatcherTpl;
+    std::string routerTpl;
+    std::string startTpl;
+    std::string stopTpl;
+    std::string caseTpl;
+    if (m_isMultiThreadDispatcher && m_rte == "Posix")
+    {
+        mtDefs = R"(
+#include "clflist_mimo_opt.h"
+#include <semaphore.h>
+#include <stdlib.h>
+
+#define METHOD_DISPATCH_TASK_NUM $METHOD_TASK_NUMU
+#define METHOD_MSG_NUM $METHOD_BUFFER_LENU
+static pthread_t s_method_dispatch_tasks[METHOD_DISPATCH_TASK_NUM] = {0};
+static sem_t s_sem_method_msg[METHOD_DISPATCH_TASK_NUM] = {0};
+static lflist s_used_method_msg_list = {0};
+static lflist s_free_method_msg_list = {0};
+static lflist_node *s_method_msg_nodes = NULL;
+static serdes_t *s_method_msgs = NULL;
 )";
+        replace_all(mtDefs, "$METHOD_TASK_NUM", std::to_string(m_methodDispatcherNum));
+        replace_all(mtDefs, "$METHOD_BUFFER_LEN", std::to_string(m_methodDispatcherBufferLength));
+
+        dispatcherTpl = R"(static void *dispatch_message(void *arg)
+{
+	int32_t ret = 0;
+	uintptr_t index = (uintptr_t)arg;
+	serdes_t serializer = {0};
+	serdes_t *ser = &serializer;
+	serdes_t *des = NULL;
+	des_buf_t local_buf = {0};
+	com_server_data_t *data = (com_server_data_t *)s_ins;
+	if (!data)
+		return (void *)-ERR_APP_PARAM;
+
+	while (true) {
+		bool need_reply = true;
+		sem_wait(&s_sem_method_msg[index]);
+		if (!data->bRunning)
+			break;
+
+		// dequeue
+		lflist_node *node = lflist_dequeue(&s_used_method_msg_list);
+		if (!node)
+			continue;
+		des = node->data;
+
+		// dispatch
+$INS_SVR_CASES
+		// reply
+		if (need_reply) {
+			(void)ipc_ser_init(ser);
+			ret = ipc_ser_put_32(ser, (uint32_t *)&ret);
+			ser->header = des->header;
+			ser->header.cid = des->header.pid;
+			ser->header.pid = data->pid;
+			ser->header.typ = MSGBX_MSG_TYPE_REPLY;
+			if (ret >= 0)
+				ret = ipc_ser_finish(ser);
+			if (ret >= 0)
+				ret = send_reply(data, ser);
+			if (ret < 0)
+				IPC_LOG_ERR("send reply fail %d.\n", ret);
+		}
+
+		// enqueue
+		lflist_enqueue(&s_free_method_msg_list, node);
+	}
+	return NULL;
+}
+)";
+        routerTpl = R"(static void *router_func(void *arg)
+{
+	int32_t ret = 0;
+	com_server_data_t *data = (com_server_data_t *)s_ins;
+	lflist_node *node = NULL;
+	uint8_t index = 0;
+
+	while (s_ins && s_ins->com_data.bRunning) {
+		ret = receive_message();
+		if (ret != 0)
+			continue;
+		
+		while (true) {
+			// dequeue
+			while (true) {
+				node = lflist_dequeue(&s_free_method_msg_list);
+				if (node)
+					break;
+				else
+					sched_yield();
+			}
+			// get msg
+			if (ipc_trans_layer_stub_get_method_msg(data->pid, data->handle, (serdes_t *)node->data) < 0) {
+				lflist_enqueue(&s_free_method_msg_list, node);
+				break;
+			}
+			// enqueue
+			lflist_enqueue(&s_used_method_msg_list, node);
+			// post sig
+			sem_post(&s_sem_method_msg[index]);
+			index = (index + 1) % METHOD_DISPATCH_TASK_NUM;
+		}
+
+	}
+	return arg;
+}
+)";
+
+        startTpl = R"(static int32_t start(void)
+{
+#if defined IPC_RTE_POSIX
+	int32_t ret = 0;
+#endif
+	com_server_data_t *data = &s_ins->com_data;
+
+	if (!data)
+		return ERR_APP_PARAM;
+
+	if (data->bRunning)
+		return RESULT_SUCCESS;
+
+	data->bRunning = true;
+	// init lists
+	lflist_init(&s_free_method_msg_list);
+	lflist_init(&s_used_method_msg_list);
+	// create des nodes
+	s_method_msg_nodes = calloc(METHOD_MSG_NUM, sizeof(lflist_node));
+	s_method_msgs = calloc(METHOD_MSG_NUM, sizeof(serdes_t));
+	for (size_t i = 0; i < METHOD_MSG_NUM; ++i) {
+		lflist_init_node(&s_method_msg_nodes[i], &s_method_msgs[i]);
+		lflist_enqueue(&s_free_method_msg_list, &s_method_msg_nodes[i]);
+	}
+	// create dispatch task
+	for (size_t i = 0; i < METHOD_DISPATCH_TASK_NUM; ++i) {
+		sem_init(&s_sem_method_msg[i], 0, 0);
+		ret = pthread_create(&s_method_dispatch_tasks[i], NULL, dispatch_message, (void *)i);
+	}
+	// create route task
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+	if (ret != 0) {
+		data->bRunning = false;
+		return -ERR_APP_START;
+	}
+
+	return RESULT_SUCCESS;
+}
+)";
+
+        stopTpl = R"(static int32_t stop(void)
+{
+	int32_t ret = 0;
+	com_server_data_t *data = &s_ins->com_data;
+
+	if (!data)
+		return ERR_APP_PARAM;
+
+	if (!data->bRunning)
+		return RESULT_SUCCESS;
+
+	//sleep 1 seconds.
+	sleep(1);
+	data->bRunning = false;
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
+	ret = pthread_join(data->route_task, NULL);
+	if (ret != 0)
+		return -ERR_APP_STOP;
+
+	for(int i = 0; i < METHOD_DISPATCH_TASK_NUM; ++i)
+		sem_post(&s_sem_method_msg[i]);
+	
+	for(int i = 0; i < METHOD_DISPATCH_TASK_NUM; ++i) {
+		pthread_join(s_method_dispatch_tasks[i], NULL);
+		sem_destroy(&s_sem_method_msg[i]);
+	}
+
+	while(lflist_dequeue(&s_used_method_msg_list) != NULL);
+	while(lflist_dequeue(&s_free_method_msg_list) != NULL);
+
+	free(s_method_msg_nodes);
+	free(s_method_msgs);
+	
+	return RESULT_SUCCESS;
+}
+)";
+    caseTpl = "\t\tret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply, &local_buf);\n";
+    }
+    else
+    {
+        dispatcherTpl = R"(static int32_t dispatch_message(void)
+{
+	int32_t ret = 0;
+	serdes_t *ser = NULL;
+	serdes_t *des = NULL;
+    com_server_data_t *data = (com_server_data_t *)s_ins;
+
+	if (!data)
+		return -ERR_APP_PARAM;
+	ser = &data->serializer;
+	des = &data->deserializer;
+
+	while (ipc_trans_layer_stub_get_method_msg(data->pid, data->handle, des) >= 0) {
+		bool need_reply = true;
+$INS_SVR_CASES
+		if (need_reply) {
+            (void)ipc_ser_init(ser);
+            ret = ipc_ser_put_32(ser, (uint32_t *)&ret);
+			ser->header = des->header;
+			ser->header.cid = des->header.pid;
+			ser->header.pid = data->pid;
+			ser->header.typ = MSGBX_MSG_TYPE_REPLY;
+			if (ret >= 0)
+				ret = ipc_ser_finish(ser);
+			if (ret >= 0)
+				ret = send_reply(data, ser);
+			if (ret < 0)
+				IPC_LOG_ERR("send reply fail %" PRId32 ".\n", ret);
+		}
+	}
+	return ret;
+})";
+        routerTpl = R"(#ifndef IPC_RTE_BAREMETAL
+#if defined IPC_RTE_KERNEL
+static int router_func(void *arg)
+#elif defined IPC_RTE_POSIX
+static void *router_func(void *arg)
+#elif defined IPC_RTE_RTOS
+static void router_func(void *arg)
+#else
+#error "unknown rte"
+#endif
+{
+	int32_t ret = 0;
+
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+	while (s_ins && s_ins->com_data.bRunning) {
+#elif defined IPC_RTE_KERNEL
+	while (unlikely(!kthread_should_stop())) {
+#endif
+		ret = receive_message();
+		if (ret != 0)
+			continue;
+
+		ret = dispatch_message();
+		if (ret < 0)
+			continue;
+	}
+#if defined IPC_RTE_KERNEL
+	return RESULT_SUCCESS;
+#elif defined IPC_RTE_POSIX
+    return arg;
+#elif defined IPC_RTE_RTOS
+	return;
+#else
+#error "unknown rte"
+#endif
+}
+)";
+        startTpl = R"(static int32_t start(void)
+{
+#if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
+	int32_t ret = 0;
+#endif
+	com_server_data_t *data = &s_ins->com_data;
+
+	if (!data)
+		return ERR_APP_PARAM;
+
+	if (data->bRunning)
+		return RESULT_SUCCESS;
+
+	data->bRunning = true;
+#if defined IPC_RTE_POSIX
+	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+	if (ret != 0) {
+#elif defined IPC_RTE_RTOS
+	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
+	if (ret != 0) {
+#elif defined IPC_RTE_KERNEL
+	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
+	if (unlikely(!data->route_task)) {
+#else
+#error "unknown rte"
+#endif
+		data->bRunning = false;
+		return -ERR_APP_START;
+	}
+
+	return RESULT_SUCCESS;
+}
+)";
+
+        stopTpl = R"(static int32_t stop(void)
+{
+	int32_t ret = 0;
+	com_server_data_t *data = &s_ins->com_data;
+
+	if (!data)
+		return ERR_APP_PARAM;
+
+	if (!data->bRunning)
+		return RESULT_SUCCESS;
+
+#if defined IPC_RTE_POSIX
+	sleep(1);
+	data->bRunning = false;
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
+	ret = pthread_join(data->route_task, NULL);
+	if (ret != 0)
+		return -ERR_APP_STOP;
+#elif defined IPC_RTE_RTOS
+	Msleep(1000);
+	data->bRunning = false;
+	ipc_trans_layer_release_recv_wait(data->pid, data->handle);
+    TaskDelete(router_func);
+#elif defined IPC_RTE_KERNEL
+	msleep(1000);
+	if (likely(data->route_task)) {
+		ipc_trans_layer_release_recv_wait(data->pid, data->handle);
+		ret = kthread_stop(data->route_task);
+		if (unlikely(ret))
+			return -ERR_APP_STOP;
+	}
+	data->bRunning = false;
+#else
+#error "unknown rte"
+#endif
+
+	return RESULT_SUCCESS;
+}
+)";
+    caseTpl = "\t\tret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);\n";
+    }
+
     std::string casesDispatchLogTpl = R"(        if (ret < 0)
             IPC_LOG_ERR("Server dispatch request failed %" PRId32 ".\n", ret);
 )";
@@ -708,6 +1017,11 @@ $INS_DESTROY
     replace_all(content, "$PID_VALUE", m_srcEndID);
     replace_all(content, "$FID_VALUE", m_fid);
     replace_all(content, "$SID_VALUE", std::to_string(m_sid).append("U"));
+    replace_all(content, "$MT_DISPATCHER_DEFS", mtDefs);
+    replace_all(content, "$DISPATCH_FUNC", dispatcherTpl);
+    replace_all(content, "$ROUTER_FUNC", routerTpl);
+    replace_all(content, "$START_FUNC", startTpl);
+    replace_all(content, "$STOP_FUNC", stopTpl);
     replace_all(content, "$INS_SVR_CASES", serverCases);
     replace_all(content, "$INS_SVR_INIT", serverInits);
     replace_all(content, "$INS_DESTROY", insDestroy);
@@ -733,6 +1047,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+#define $RTE_DEFINE
 $INCLUDES
 #ifdef __cplusplus
 extern "C" {
@@ -836,6 +1151,7 @@ int32_t $PROVIDER_NAME_destroy(void);
     replace_all(content, "$INS_CLIENTS", servers);
     replace_all(content, "$INS_CLIENT_EXTS", serverExts);
     replace_all(content, "$PROVIDER_NAME", providerName);
+    replace_all(content, "$RTE_DEFINE", m_rtestr);
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");
@@ -917,8 +1233,12 @@ static int32_t dispatch_message(void)
 #ifndef IPC_RTE_BAREMETAL
 #if defined IPC_RTE_KERNEL
 static int router_func(void *arg)
-#else
+#elif defined IPC_RTE_POSIX
+static void *router_func(void *arg)
+#elif defined IPC_RTE_RTOS
 static void router_func(void *arg)
+#else
+#error "unknown rte"
 #endif
 {
 	int32_t ret = 0;
@@ -938,8 +1258,12 @@ static void router_func(void *arg)
 	}
 #if defined IPC_RTE_KERNEL
 	return RESULT_SUCCESS;
-#else
+#elif defined IPC_RTE_POSIX
+    return arg;
+#elif defined IPC_RTE_RTOS
 	return;
+#else
+#error "unknown rte"
 #endif
 }
 
@@ -961,12 +1285,14 @@ static int32_t start(void)
 #if defined IPC_RTE_POSIX
 	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
-#if defined IPC_RTE_RTOS
+#elif defined IPC_RTE_RTOS
 	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_KERNEL
 	data->route_task = kthread_run(router_func, NULL, "$PROVIDER_NAME_thread");
 	if (unlikely(!data->route_task)) {
+#else
+#error "unknown rte"
 #endif
 		data->bRunning = false;
 		return -ERR_APP_START;
@@ -1008,6 +1334,8 @@ static int32_t stop(void)
 			return -ERR_APP_STOP;
 	}
 	data->bRunning = false;
+#else
+#error "unknown rte"
 #endif
 
 	return RESULT_SUCCESS;

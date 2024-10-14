@@ -30,6 +30,20 @@ specification com.bst.ipc.deployment{
         //会话ID，静态配置通讯所使用的会话ID, 范围为0-15。
         //{EndID, FID, SID}三元组唯一。 
         SID: UInt8;
+        //生成多线程分发器，仅适用于Posix环境，需要仔细测试多线程带来的收益。
+        EnableMultiThreadDispatcher : Boolean (default : false);
+        //Method消息分器线程数量，仅用于Server中
+        MethodDispatcherNum : UInt8 (default : 8);
+        //Method消息分发器缓存深度
+        MethodDispatcherBufferLength : UInt16 (default : 512);
+        //Reply消息分器线程数量，仅用于Client中
+        ReplyDispatcherNum : UInt8 (default : 4);
+        //Reply消息分发器缓存深度
+        ReplyDispatcherBufferLength : UInt16 (default : 256);
+        //Broadcast消息分器线程数量，仅用于Client中
+        BroadcastDispatcherNum : UInt8 (default : 4);
+        //Broadcast消息分发器缓存深度
+        BroadcastDispatcherBufferLength : UInt16 (default : 256);
     }
     // 一个provider可以包含多个instance，每个instance对应于一个interface。
     // 同一provider下，同一个interface只可对应一个instance。
