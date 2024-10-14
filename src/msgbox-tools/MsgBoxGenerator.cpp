@@ -852,7 +852,7 @@ $INS_SVR_CASES
 	}
 	return ret;
 })";
-        routerTpl = R"(#ifndef IPC_RTE_BAREMETAL
+        routerTpl = R"(
 #if defined IPC_RTE_KERNEL
 static int router_func(void *arg)
 #elif defined IPC_RTE_POSIX
