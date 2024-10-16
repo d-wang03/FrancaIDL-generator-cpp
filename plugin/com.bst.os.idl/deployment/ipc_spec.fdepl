@@ -44,6 +44,16 @@ specification com.bst.ipc.deployment{
         BroadcastDispatcherNum : UInt8 (default : 4);
         //Broadcast消息分发器缓存深度
         BroadcastDispatcherBufferLength : UInt16 (default : 256);
+
+        //使能Posix环境下接收线程实时调度
+        EnablePosixRealtimeSched : Boolean (default : false);
+        //Posix环境下接收线程的优先级
+        PosixRouterPriority : UInt8 (default : 20);
+
+        //使能轮询接收消息，轮询一定次数后转为阻塞等待
+        EnablePollingRcvMsgs : Boolean (default : false);
+        //轮询次数
+        RcvMsgPollingTimes : UInt32 (default : 500);
     }
     // 一个provider可以包含多个instance，每个instance对应于一个interface。
     // 同一provider下，同一个interface只可对应一个instance。

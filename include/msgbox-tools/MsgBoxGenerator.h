@@ -75,6 +75,11 @@ private:
     uint16_t m_replyDispatcherBufferLength;
     uint8_t m_broadcastDispatcherNum;
     uint16_t m_broadcastDispatcherBufferLength;
+    bool m_enablePosixRealtimeSched;
+    uint8_t m_posixRouterPriority;
+    bool m_enablePollingRcvMsgs;
+    uint32_t m_rcvMsgPollingTimes;
+
     std::list<std::string> m_infs;
     std::string m_folderPath;
 };

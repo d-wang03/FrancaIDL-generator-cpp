@@ -384,6 +384,48 @@ bool MsgBoxGenerator::validateProvider(const std::shared_ptr<FDExtensionRoot> &p
         m_broadcastDispatcherBufferLength = value->getInteger();
     }
 
+    // get and validate EnablePosixRealtimeSched.
+    value = provider->getSingleValue("EnablePosixRealtimeSched");
+    if (!value)
+        m_enablePosixRealtimeSched = false;
+    else if (value->isBoolean())
+        m_enablePosixRealtimeSched = value->getBoolean();
+
+    // get and validate PosixRouterPriority.
+    value = provider->getSingleValue("PosixRouterPriority");
+    if (!value)
+    {
+        CERR << "No PosixRouterPriority defined." << ENDL;
+        return false;
+    }
+    if (!value->isInteger())
+    {
+        CERR << "Invalid PosixRouterPriority." << ENDL;
+        return false;
+    }
+    m_posixRouterPriority = value->getInteger();
+
+    // get and validate EnablePollingRcvMsgs.
+    value = provider->getSingleValue("EnablePollingRcvMsgs");
+    if (!value)
+        m_enablePollingRcvMsgs = false;
+    else if (value->isBoolean())
+        m_enablePollingRcvMsgs = value->getBoolean();
+
+    // get and validate RcvMsgPollingTimes.
+    value = provider->getSingleValue("RcvMsgPollingTimes");
+    if (!value)
+    {
+        CERR << "No RcvMsgPollingTimes defined." << ENDL;
+        return false;
+    }
+    if (!value->isInteger())
+    {
+        CERR << "Invalid RcvMsgPollingTimes." << ENDL;
+        return false;
+    }
+    m_rcvMsgPollingTimes = value->getInteger();
+
     return true;
 }
 
@@ -742,9 +784,7 @@ $INS_SVR_CASES
 
         startTpl = R"(static int32_t start(void)
 {
-#if defined IPC_RTE_POSIX
-	int32_t ret = 0;
-#endif
+$POSIX_SCHED_VARS	int32_t ret = 0;
 	com_server_data_t *data = &s_ins->com_data;
 
 	if (!data)
@@ -770,7 +810,7 @@ $INS_SVR_CASES
 		ret = pthread_create(&s_method_dispatch_tasks[i], NULL, dispatch_message, (void *)i);
 	}
 	// create route task
-	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+$POSIX_SCHED_SET    ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
 		data->bRunning = false;
 		return -ERR_APP_START;
@@ -892,7 +932,7 @@ static void router_func(void *arg)
         startTpl = R"(static int32_t start(void)
 {
 #if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
-	int32_t ret = 0;
+$POSIX_SCHED_VARS	int32_t ret = 0;
 #endif
 	com_server_data_t *data = &s_ins->com_data;
 
@@ -904,7 +944,7 @@ static void router_func(void *arg)
 
 	data->bRunning = true;
 #if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+$POSIX_SCHED_SET	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_RTOS
 	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
@@ -962,7 +1002,29 @@ static void router_func(void *arg)
 	return RESULT_SUCCESS;
 }
 )";
-    caseTpl = "\t\tret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);\n";
+        caseTpl = "\t\tret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);\n";
+    }
+
+    if (m_enablePosixRealtimeSched && m_rte == "Posix")
+    {
+        std::string posixSchedVar = R"(    struct sched_param param = {0};
+    pthread_attr_t attr = {0};
+    int policy = SCHED_RR;
+)";
+        std::string posixSchedSet = R"(    pthread_attr_init(&attr);
+    pthread_attr_setschedpolicy(&attr, policy);
+    param.sched_priority = $PRIORITY;
+    pthread_attr_setschedparam(&attr, &param);
+)";
+        replace_all(posixSchedSet, "$PRIORITY", std::to_string(m_posixRouterPriority));
+        replace_all(startTpl, "$POSIX_SCHED_VARS", posixSchedVar);
+        replace_all(startTpl, "$POSIX_SCHED_SET", posixSchedSet);
+        replace_all(startTpl, "pthread_create(&data->route_task, NULL, router_func, NULL);", "pthread_create(&data->route_task, &attr, router_func, NULL);");
+    }
+    else
+    {
+        replace_all(startTpl, "$POSIX_SCHED_VARS", "");
+        replace_all(startTpl, "$POSIX_SCHED_SET", "");
     }
 
     std::string casesDispatchLogTpl = R"(        if (ret < 0)
@@ -1271,7 +1333,7 @@ static void router_func(void *arg)
 static int32_t start(void)
 {
 #if defined IPC_RTE_POSIX || defined IPC_RTE_RTOS
-	int32_t ret = 0;
+$POSIX_SCHED_VARS	int32_t ret = 0;
 #endif
 	com_client_data_t *data = &s_ins->com_data;
 
@@ -1283,7 +1345,7 @@ static int32_t start(void)
 
 	data->bRunning = true;
 #if defined IPC_RTE_POSIX
-	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+$POSIX_SCHED_SET	ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
 #elif defined IPC_RTE_RTOS
 	TaskCreate(router_func, "$PROVIDER_NAME_thread", 0x1000, NULL, 6 ,NULL,NULL);
@@ -1412,6 +1474,28 @@ $INS_DESTROY
     std::string insCases;
     std::string insInits;
     std::string insDestroy;
+
+    if (m_enablePosixRealtimeSched && m_rte == "Posix")
+    {
+        std::string posixSchedVar = R"(    struct sched_param param = {0};
+    pthread_attr_t attr = {0};
+    int policy = SCHED_RR;
+)";
+        std::string posixSchedSet = R"(    pthread_attr_init(&attr);
+    pthread_attr_setschedpolicy(&attr, policy);
+    param.sched_priority = $PRIORITY;
+    pthread_attr_setschedparam(&attr, &param);
+)";
+        replace_all(posixSchedSet, "$PRIORITY", std::to_string(m_posixRouterPriority));
+        replace_all(content, "$POSIX_SCHED_VARS", posixSchedVar);
+        replace_all(content, "$POSIX_SCHED_SET", posixSchedSet);
+        replace_all(content, "pthread_create(&data->route_task, NULL, router_func, NULL);", "pthread_create(&data->route_task, &attr, router_func, NULL);");
+    }
+    else
+    {
+        replace_all(content, "$POSIX_SCHED_VARS", "");
+        replace_all(content, "$POSIX_SCHED_SET", "");
+    }
 
     std::string caseTpl = R"(			if (des->header.pid == s_ins->$NAME_ext.cid)
 				ret = s_ins->client.$NAME_client.dispatch_broadcast(des);
