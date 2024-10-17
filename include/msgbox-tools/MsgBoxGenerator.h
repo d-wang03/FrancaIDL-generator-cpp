@@ -77,7 +77,6 @@ private:
     uint16_t m_broadcastDispatcherBufferLength;
     bool m_enablePosixRealtimeSched;
     uint8_t m_posixRouterPriority;
-    bool m_enablePollingRcvMsgs;
     uint32_t m_rcvMsgPollingTimes;
 
     std::list<std::string> m_infs;

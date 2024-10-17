@@ -405,13 +405,6 @@ bool MsgBoxGenerator::validateProvider(const std::shared_ptr<FDExtensionRoot> &p
     }
     m_posixRouterPriority = value->getInteger();
 
-    // get and validate EnablePollingRcvMsgs.
-    value = provider->getSingleValue("EnablePollingRcvMsgs");
-    if (!value)
-        m_enablePollingRcvMsgs = false;
-    else if (value->isBoolean())
-        m_enablePollingRcvMsgs = value->getBoolean();
-
     // get and validate RcvMsgPollingTimes.
     value = provider->getSingleValue("RcvMsgPollingTimes");
     if (!value)
@@ -583,7 +576,7 @@ static int32_t receive_message(void)
 	if (!data)
 		return -ERR_APP_PARAM;
 
-	return ipc_trans_layer_query_info(data->pid, data->handle);
+	return ipc_trans_layer_query_info(data->pid, data->handle, $POLLING_TIMES);
 }
 
 // dispatch messages
@@ -1088,6 +1081,7 @@ $POSIX_SCHED_SET	ret = pthread_create(&data->route_task, NULL, router_func, NULL
     replace_all(content, "$INS_SVR_INIT", serverInits);
     replace_all(content, "$INS_DESTROY", insDestroy);
     replace_all(content, "$PROVIDER_NAME", providerName);
+    replace_all(content, "$POLLING_TIMES", std::to_string(m_rcvMsgPollingTimes));
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");
@@ -1248,7 +1242,7 @@ static int32_t receive_message(void)
 	if (!data)
 		return -ERR_APP_PARAM;
 
-	ret = ipc_trans_layer_query_info(data->pid, data->handle);
+	ret = ipc_trans_layer_query_info(data->pid, data->handle, $POLLING_TIMES);
 
 	// check if availability changed
 	if (data->avail_changed_cb) {
@@ -1561,6 +1555,7 @@ $INS_DESTROY
     replace_all(content, "$INS_INIT", insInits);
     replace_all(content, "$INS_DESTROY", insDestroy);
     replace_all(content, "$PROVIDER_NAME", providerName);
+    replace_all(content, "$POLLING_TIMES", std::to_string(m_rcvMsgPollingTimes));
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");
