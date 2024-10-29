@@ -54,7 +54,6 @@ cmake_minimum_required(VERSION 2.10)
     replace_all(content, "/*", "#");
     replace_all(content, " */", "#");
     replace_all(content, " *", "#");
-    content += "\nproject(" + prj_name + ")\n";
     const bool isProjectMode = gen.isProjectMode();
     auto tmp = gen.getAllServers().begin()->first->getContainer()->getName();
     auto container_name = toFirstUpper(tmp.substr(tmp.find_last_of(".") + 1));

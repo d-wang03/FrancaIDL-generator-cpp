@@ -256,19 +256,23 @@ std::string FInterfaceLogicDefaultGenerator::generateLogicHeader(
     {
         for (const auto &attr : inf->getAttributes())
         {
-            attrMethods.emplace_back(gen.getSetMethodDeclStr(attr));
-            attrMethods.emplace_back(gen.getGetMethodDeclStr(attr));
+            auto set_decl = gen.getSetMethodDeclStr(attr);
+            auto get_decl = gen.getGetMethodDeclStr(attr);
+            attrMethods.emplace_back(gen.TransToOverrideDeclStr(set_decl));
+            attrMethods.emplace_back(gen.TransToOverrideDeclStr(get_decl));
         }
         for (const auto &md : inf->getMethods())
         {
             if (gen.isRecordAndSimulateInterface(inf) && contains(gen.record_simulate_methods, md->getName()))
                 continue;
-            MethodsDecl.emplace_back(gen.getMethodDecl(md));
+            auto md_decl = gen.getMethodDecl(md);
+            MethodsDecl.emplace_back(gen.TransToOverrideDeclStr(md_decl));
         }
 
         for (const auto &bc : inf->getBroadcasts())
         {
-            BroadcastsDecl.emplace_back(gen.getBroadcastDecl(bc));
+            auto bc_decl = gen.getBroadcastDecl(bc);
+            BroadcastsDecl.emplace_back(gen.TransToOverrideDeclStr(bc_decl));
         }
     }
 

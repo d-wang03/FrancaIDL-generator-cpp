@@ -35,29 +35,6 @@ void HelloServiceServerLogic::openCamera(
     }
 }
 
-void HelloServiceServerLogic::startRecord(
-    const std::shared_ptr<CommonAPI::ClientId> _client, std::string _path,
-    v2::com::bst::os::services::hello::HelloServiceStubDefault::startRecordReply_t _reply)
-{
-    // TODO: Add the stub processing logic here.
-    std::cout << "Enter HelloServiceServerLogic startRecord" << std::endl;
-}
-
-void HelloServiceServerLogic::stopRecord(
-    const std::shared_ptr<CommonAPI::ClientId> _client,
-    v2::com::bst::os::services::hello::HelloServiceStubDefault::stopRecordReply_t _reply)
-{
-    // TODO: Add the stub processing logic here.
-    std::cout << "Enter HelloServiceServerLogic stopRecord" << std::endl;
-}
-
-void HelloServiceServerLogic::readRecord(
-    const std::shared_ptr<CommonAPI::ClientId> _client, std::string _path,
-    v2::com::bst::os::services::hello::HelloServiceStubDefault::readRecordReply_t _reply)
-{
-    // TODO: Add the stub processing logic here.
-    std::cout << "Enter HelloServiceServerLogic readRecord" << std::endl;
-}
 void HelloServiceServerLogic::fireFirstBcEvent(const std::string &_hi,
                                                const std::shared_ptr<CommonAPI::ClientIdList> _receivers)
 {
