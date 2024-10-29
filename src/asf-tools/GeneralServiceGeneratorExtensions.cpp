@@ -977,6 +977,12 @@ std::list<std::string> GeneralServiceGeneratorExtensions::getSlotInMap(
     return m_slotsMap.at(fInterface);
 }
 
+std::string GeneralServiceGeneratorExtensions::TransToOverrideDeclStr(const std::string &_decl)
+{
+    std::string override_decl(_decl);
+    return replace_one(override_decl, ";", " override;");;
+}
+
 std::string GeneralServiceGeneratorExtensions::getMethodDecl(const std::shared_ptr<BstIdl::FMethod> &md)
 {
     std::string decl("virtual void ");

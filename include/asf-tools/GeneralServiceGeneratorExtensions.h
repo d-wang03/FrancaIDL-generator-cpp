@@ -216,6 +216,7 @@ public:
     std::string getSomeIPInstanceId(const std::shared_ptr<BstIdl::FDExtensionElement> &instance);
     std::string getServerName(const std::shared_ptr<BstIdl::FDExtensionElement> &instance);
     // method
+    std::string TransToOverrideDeclStr(const std::string &_decl);
     std::string getMethodDecl(const std::shared_ptr<BstIdl::FMethod> &md);
     std::string getMethodSeletcorFuncPtrDecl(const std::shared_ptr<BstIdl::FMethod> &md);
     std::string getMethodDefine(const std::shared_ptr<BstIdl::FMethod> &md, const std::string &class_name);
