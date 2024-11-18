@@ -84,7 +84,7 @@ bool MsgBoxGenerator::generate()
                         if (!ins || ins->getTag() != "instance")
                             continue;
                         auto gen = std::make_shared<StubGenerator>(m_destDir, m_srcEndID, ins);
-                        if (m_isMultiThreadDispatcher && m_rte == "Posix")
+                        if (m_isMultiThreadDispatcher && (m_rte == "Posix" || m_rte == "RTOS"))
                             gen->setExternDesbuf(true);
                         gen->setRteStr(m_rtestr);
                         ret = gen->generate();
@@ -115,7 +115,7 @@ bool MsgBoxGenerator::generate()
                         if (!ins || ins->getTag() != "instance")
                             continue;
                         auto gen = std::make_shared<ProxyGenerator>(m_destDir, m_srcEndID, ins);
-                        if (m_isMultiThreadDispatcher && m_rte == "Posix")
+                        if (m_isMultiThreadDispatcher && (m_rte == "Posix" || m_rte == "RTOS"))
                             gen->setExternDesbuf(true);
                         gen->setRteStr(m_rtestr);
                         ret = gen->generate();
@@ -670,10 +670,10 @@ $INS_DESTROY
     std::string startTpl;
     std::string stopTpl;
     std::string caseTpl;
-    if (m_isMultiThreadDispatcher && m_rte == "Posix")
+    if (m_isMultiThreadDispatcher && (m_rte == "Posix" || m_rte == "RTOS"))
     {
         mtDefs = R"(
-#include "clflist_mimo_opt.h"
+#include "ipc_lockfree_list_mimo.h"
 #include <semaphore.h>
 #include <stdlib.h>
 
@@ -683,8 +683,8 @@ static pthread_t s_method_dispatch_tasks[METHOD_DISPATCH_TASK_NUM] = {0};
 static sem_t s_sem_method_msg[METHOD_DISPATCH_TASK_NUM] = {0};
 static lflist s_used_method_msg_list = {0};
 static lflist s_free_method_msg_list = {0};
-static lflist_node *s_method_msg_nodes = NULL;
-static serdes_t *s_method_msgs = NULL;
+static lflist_node s_method_msg_nodes[METHOD_MSG_NUM] = {0};
+static serdes_t s_method_msgs[METHOD_MSG_NUM] = {0};
 )";
         replace_all(mtDefs, "$METHOD_TASK_NUM", std::to_string(m_methodDispatcherNum));
         replace_all(mtDefs, "$METHOD_BUFFER_LEN", std::to_string(m_methodDispatcherBufferLength));
@@ -791,19 +791,17 @@ $POSIX_SCHED_VARS	int32_t ret = 0;
 	lflist_init(&s_free_method_msg_list);
 	lflist_init(&s_used_method_msg_list);
 	// create des nodes
-	s_method_msg_nodes = calloc(METHOD_MSG_NUM, sizeof(lflist_node));
-	s_method_msgs = calloc(METHOD_MSG_NUM, sizeof(serdes_t));
 	for (size_t i = 0; i < METHOD_MSG_NUM; ++i) {
 		lflist_init_node(&s_method_msg_nodes[i], &s_method_msgs[i]);
 		lflist_enqueue(&s_free_method_msg_list, &s_method_msg_nodes[i]);
 	}
 	// create dispatch task
-	for (size_t i = 0; i < METHOD_DISPATCH_TASK_NUM; ++i) {
+$POSIX_SCHED_SET1	for (size_t i = 0; i < METHOD_DISPATCH_TASK_NUM; ++i) {
 		sem_init(&s_sem_method_msg[i], 0, 0);
 		ret = pthread_create(&s_method_dispatch_tasks[i], NULL, dispatch_message, (void *)i);
 	}
 	// create route task
-$POSIX_SCHED_SET    ret = pthread_create(&data->route_task, NULL, router_func, NULL);
+$POSIX_SCHED_SET2    ret = pthread_create(&data->route_task, NULL, router_func, NULL);
 	if (ret != 0) {
 		data->bRunning = false;
 		return -ERR_APP_START;
@@ -843,9 +841,6 @@ $POSIX_SCHED_SET    ret = pthread_create(&data->route_task, NULL, router_func, N
 	while(lflist_dequeue(&s_used_method_msg_list) != NULL);
 	while(lflist_dequeue(&s_free_method_msg_list) != NULL);
 
-	free(s_method_msg_nodes);
-	free(s_method_msgs);
-	
 	return RESULT_SUCCESS;
 }
 )";
@@ -998,20 +993,44 @@ $POSIX_SCHED_SET	ret = pthread_create(&data->route_task, NULL, router_func, NULL
         caseTpl = "\t\tret = s_ins->server.$NAME_server.dispatch_request(des, &need_reply);\n";
     }
 
-    if (m_enablePosixRealtimeSched && m_rte == "Posix")
+    if (m_enablePosixRealtimeSched)
     {
-        std::string posixSchedVar = R"(    struct sched_param param = {0};
+        std::string posixSchedVar;
+        std::string posixSchedSet1;
+        std::string posixSchedSet2;
+        if (m_rte == "Posix")
+        {
+            posixSchedVar = R"(    struct sched_param param = {0};
     pthread_attr_t attr = {0};
     int policy = SCHED_RR;
 )";
-        std::string posixSchedSet = R"(    pthread_attr_init(&attr);
+            posixSchedSet2 = R"(    pthread_attr_init(&attr);
     pthread_attr_setschedpolicy(&attr, policy);
     param.sched_priority = $PRIORITY;
     pthread_attr_setschedparam(&attr, &param);
 )";
-        replace_all(posixSchedSet, "$PRIORITY", std::to_string(m_posixRouterPriority));
+        replace_all(posixSchedSet2, "$PRIORITY", std::to_string(m_posixRouterPriority));
+        }
+        else if (m_rte == "RTOS")
+        {
+            posixSchedVar = R"(    struct sched_param param = {0};
+    pthread_attr_t attr = {0};
+)";
+            posixSchedSet1 = R"(    pthread_attr_init(&attr);
+    param.sched_priority = 5;
+    pthread_attr_setschedparam(&attr, &param);
+	pthread_attr_setstacksize(&attr, 1024);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+)";
+            posixSchedSet2 = R"(    param.sched_priority = 6;
+    pthread_attr_setschedparam(&attr, &param);
+)";
+            replace_all(startTpl, "pthread_create(&s_method_dispatch_tasks[i], NULL, dispatch_message, (void *)i);"
+                , "pthread_create(&s_method_dispatch_tasks[i], &attr, dispatch_message, (void *)i);");
+        }
         replace_all(startTpl, "$POSIX_SCHED_VARS", posixSchedVar);
-        replace_all(startTpl, "$POSIX_SCHED_SET", posixSchedSet);
+        replace_all(startTpl, "$POSIX_SCHED_SET1", posixSchedSet1);
+        replace_all(startTpl, "$POSIX_SCHED_SET2", posixSchedSet2);
         replace_all(startTpl, "pthread_create(&data->route_task, NULL, router_func, NULL);", "pthread_create(&data->route_task, &attr, router_func, NULL);");
     }
     else
@@ -1103,7 +1122,6 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
-#define $RTE_DEFINE
 $INCLUDES
 #ifdef __cplusplus
 extern "C" {
@@ -1207,7 +1225,6 @@ int32_t $PROVIDER_NAME_destroy(void);
     replace_all(content, "$INS_CLIENTS", servers);
     replace_all(content, "$INS_CLIENT_EXTS", serverExts);
     replace_all(content, "$PROVIDER_NAME", providerName);
-    replace_all(content, "$RTE_DEFINE", m_rtestr);
     replace_all(content, "    ", "\t");
     replace_all(content, "\r\n", "\n");
     replace_all(content, "\t\n", "\n");
