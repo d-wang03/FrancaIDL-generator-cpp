@@ -1288,12 +1288,14 @@ static int32_t dispatch_message(void)
 		has_message = false;
 		if (ipc_trans_layer_proxy_get_broadcast_msg(data->pid, data->handle, des) >= 0) {
 			has_message = true;
+            ret = -1;
             $INS_CASES1
 			if (ret < 0)
 				IPC_LOG_ERR("Unexpected broadcast message from ID %u.\n", des->header.pid);
 		}
 		if (ipc_trans_layer_proxy_get_reply_msg(data->pid, data->handle, des) >= 0) {
 			has_message = true;
+            ret = -1;
             $INS_CASES2
 			if (ret < 0)
 			    IPC_LOG_ERR("Unexpected reply message from ID %u.\n", des->header.pid);
