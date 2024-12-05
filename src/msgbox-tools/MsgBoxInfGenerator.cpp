@@ -2968,14 +2968,9 @@ std::string MsgBoxInfGenerator::getVersionComment()
 /* This file is auto generated for message box v$VERSION.
  * All manual modifications will be LOST by next generation.
  * It is recommended NOT modify it.
- * Generator Version: francaidl $GEN_VER1 msgbx_ipc $GEN_VER2
  */
 )";
     replace_all(ret, "$VERSION", MsgBoxGenerator::version());
-    std::string gen_ver;
-    gen_ver = COMMIT_HASH;
-    replace_all(ret, "$GEN_VER1", gen_ver);
-    replace_all(ret, "$GEN_VER2", COMMIT_HASH2);
     return ret;
 }
 
