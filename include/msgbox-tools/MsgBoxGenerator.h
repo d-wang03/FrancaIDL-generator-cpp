@@ -22,7 +22,7 @@
 namespace BstIdl
 {
 
-#define MSG_BOX_VERSION "1.3.0"
+#define MSG_BOX_VERSION "1.4.0"
 
 class MsgBoxGenerator : public AbstractGenerator
 {
@@ -64,9 +64,21 @@ private:
     std::string getVersionComment();
     std::string m_providerType;
     std::string m_rte;
+    std::string m_rtestr;
     std::string m_srcEndID;
     uint8_t m_sid;
     std::string m_fid;
+    bool m_isMultiThreadDispatcher;
+    uint8_t m_methodDispatcherNum;
+    uint16_t m_methodDispatcherBufferLength;
+    uint8_t m_replyDispatcherNum;
+    uint16_t m_replyDispatcherBufferLength;
+    uint8_t m_broadcastDispatcherNum;
+    uint16_t m_broadcastDispatcherBufferLength;
+    bool m_enablePosixRealtimeSched;
+    uint8_t m_posixRouterPriority;
+    uint32_t m_rcvMsgPollingTimes;
+
     std::list<std::string> m_infs;
     std::string m_folderPath;
 };

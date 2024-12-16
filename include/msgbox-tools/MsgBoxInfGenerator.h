@@ -33,6 +33,7 @@ public:
 
     void setRteStr(std::string rte) { m_rtestr = rte; }
     std::string getInfName()const { return m_infName; }
+    void setExternDesbuf(bool flag) { m_bExternDesbuf = flag; }
 
 protected:
     virtual bool validate(bool checkDstEndID = false);
@@ -136,6 +137,7 @@ protected:
     bool m_bSeparateReply = false;
     bool m_bNotUseSwitchCase = false;
     bool m_bEnableSection = false;
+    bool m_bExternDesbuf = false;
 };
 } // namespace BstIdl
 

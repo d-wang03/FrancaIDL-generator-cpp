@@ -97,7 +97,6 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
-$RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_common.h>
 #else
@@ -137,7 +136,6 @@ $TYPE_SERDES_FUNC
 
     std::string typeName = m_infName + "_datatype" ;
     std::string headerMacro = toUpper(typeName) + "_H";
-    std::string rte_tpl("#define $RTE_STR\n");
     std::string typesDecl;
     std::string constantDecl;
     std::string serdesFunc;
@@ -167,10 +165,6 @@ $TYPE_SERDES_FUNC
     replace_all(content, "$LICENSE", getLicense());
     replace_all(content, "$VERSION_COMMENT", getVersionComment());
     replace_all(content, "$HEADER_MACRO", headerMacro);
-    if (m_rtestr == "IPC_RTE_RTOS")
-        rte_tpl.append("#undef IPC_RTE_BAREMETAL\n");
-    replace_all(rte_tpl, "$RTE_STR", m_rtestr);
-    replace_all(content, "$RTE_DEFINE", rte_tpl);
     replace_all(content, "$TYPES_DECL", typesDecl);
     replace_all(content, "$CONSTANT_DECL", constantDecl);
     replace_all(content, "$TYPE_SERDES_FUNC", serdesFunc);
@@ -751,10 +745,15 @@ std::string MsgBoxInfGenerator::getStubMethodCallFunc(const std::shared_ptr<FMet
     if (ret < 0)
         return -ERR_APP_SERDES;
 )";
-        replace_all(ret, "$DESERIALIZE", desTpl);
         std::string desVarTpl = R"(int32_t ret = 0;
     des_buf_t *buf = NULL;
 	uint32_t len = 0;)";
+        if (m_bExternDesbuf)
+        {
+            replace_all(desTpl, "    buf = &data->des_buf;\n", "");
+            replace_all(desVarTpl, "    des_buf_t *buf = NULL;\n", "");
+        }
+        replace_all(ret, "$DESERIALIZE", desTpl);
         replace_all(ret, "$DES_VARS", desVarTpl);
     }
 
@@ -959,8 +958,6 @@ static int32_t $NAME($ARGS)
 	serdes_t *ser = &serdes;
 #endif
 	com_server_data_t *data = s_data;
-	broadcast_reg_entry_t *entries = NULL;
-	uint32_t size = 0;
 
 	if (!data || !s_ext)
 		return -ERR_APP_PARAM;
@@ -972,9 +969,7 @@ static int32_t $NAME($ARGS)
     if (ret < 0)
 	    return -ERR_APP_SERDES;
 
-	entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;
-	size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;
-	ret = send_broadcast(data, ser, entries, CMD_BROADCAST_$UPPER_NAME, size);
+	ret = send_broadcast(data, ser, s_ext->$NAME_registry.entries, CMD_BROADCAST_$UPPER_NAME, IPC_MAX_SUBSCRIPTION);
     return ret;
 })";
 
@@ -994,28 +989,8 @@ static int32_t $NAME($ARGS)
     {
         arg_list.emplace_back("broadcast_reg_entry_t *entries");
         arg_list.emplace_back("uint32_t size");
-        replace_one(ret, "broadcast_reg_entry_t *entry = NULL;", "broadcast_reg_entry_t *entry = entries;");
-        remove_all(ret, "	broadcast_reg_entry_t *entries = NULL;\n");
-        remove_all(ret, "	uint32_t size = 0;\n");
-        // replace_one(ret, "if (!data || !s_ext)", "if (!data || !s_ext || !entry || size == 0)");
-        replace_one(ret, "	entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;\n",
-        R"(    if (!entries || size == 0) {
-        entries = s_ext->$NAME_registry.entries + s_ext->$NAME_registry.start;)");
-
-        replace_one(ret, "size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;\n",
-        R"(
-        size = s_ext->$NAME_registry.end - s_ext->$NAME_registry.start;
-    }
-)");
-
-//         replace_one(ret, "	ret = send_broadcast(data, ser, &s_ext->$NAME_registry, CMD_BROADCAST_$UPPER_NAME);\n", 
-//         R"(     
-//         if (!entries && size == 0) {
-// 		entries = s_ext->$NAME_registry.entries;
-//         size = s_ext->$NAME_registry.end;
-// 	}
-// 	ret = send_broadcast(data, ser, reg, CMD_BROADCAST_$UPPER_NAME);
-// )");
+        replace_one(ret, "send_broadcast(data, ser, s_ext->$NAME_registry.entries, CMD_BROADCAST_$UPPER_NAME, IPC_MAX_SUBSCRIPTION);",
+            "send_broadcast(data, ser, entries, CMD_BROADCAST_$UPPER_NAME, size);");
     }
     
     replace_all(ret, "$NAME", name);
@@ -1359,6 +1334,11 @@ static int32_t dispatch_request(serdes_t *des, bool *reply)
 }
 )";
 
+    if (m_bExternDesbuf)
+    {
+        replace_all(ret, "(serdes_t *des, bool *reply)", "(serdes_t *des, bool *reply, des_buf_t *buf)");
+        replace_all(ret, "if (!des)", "if (!des || !buf)");
+    }
     return ret;
 }
 
@@ -1402,6 +1382,8 @@ R"(ret = call_$NAME(des, ser);
     if (m_bNotUseSwitchCase)
         ret += "}\n";
 
+    if (m_bExternDesbuf)
+        replace_all(ret, "call_$NAME(des);", "call_$NAME(des, buf);");
     return ret;
 }
 
@@ -1451,6 +1433,12 @@ static int32_t call_$NAME(serdes_t *des, serdes_t *ser)
         return -ERR_APP_SERDES;
 }
 )";
+    }
+
+    if (m_bExternDesbuf)
+    {
+        replace_all(ret, "call_$NAME(serdes_t *des)", "call_$NAME(serdes_t *des, des_buf_t *buf)");
+        replace_all(ret, "if (!des || !data || !s_ext || !s_ext->$NAME_ptr)", "if (!des || !data || !s_ext || !s_ext->$NAME_ptr || !buf)");
     }
 
     return ret;
@@ -2646,6 +2634,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+#define $RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_client_utils.h>
 #else
@@ -2728,6 +2717,8 @@ void $CLIENT_NAME_destroy(void);
 
 #endif // $HEADER_MACRO
 )";
+
+    replace_all(ret, "$RTE_DEFINE", m_rtestr);
     return ret;
 }
 
@@ -2812,6 +2803,7 @@ $VERSION_COMMENT
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
+#define $RTE_DEFINE
 #ifdef IPC_RTE_KERNEL
 #include <bst/ipc_app_svr_utils.h>
 #else
@@ -2889,6 +2881,10 @@ void $SERVER_NAME_destroy(void);
 
 #endif // $HEADER_MACRO
 )";
+    if (m_bExternDesbuf)
+        replace_all(ret, "(*dispatch_request)(serdes_t *des, bool *reply);", "(*dispatch_request)(serdes_t *des, bool *reply, des_buf_t *buf);");
+
+    replace_all(ret, "$RTE_DEFINE", m_rtestr);
     return ret;
 }
 
@@ -2972,14 +2968,9 @@ std::string MsgBoxInfGenerator::getVersionComment()
 /* This file is auto generated for message box v$VERSION.
  * All manual modifications will be LOST by next generation.
  * It is recommended NOT modify it.
- * Generator Version: francaidl $GEN_VER1 msgbx_ipc $GEN_VER2
  */
 )";
     replace_all(ret, "$VERSION", MsgBoxGenerator::version());
-    std::string gen_ver;
-    gen_ver = COMMIT_HASH;
-    replace_all(ret, "$GEN_VER1", gen_ver);
-    replace_all(ret, "$GEN_VER2", COMMIT_HASH2);
     return ret;
 }
 
